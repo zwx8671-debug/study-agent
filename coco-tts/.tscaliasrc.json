@@ -1,0 +1,11 @@
+{
+    "resolveFullPaths": true,
+    "replacers": {
+        "@config": "src/config",
+        "@tts": "src/tts",
+        "@utils": "src/utils",
+        "@interface": "src/interfaces",
+        "@socketio": "src/socketio",
+        "@plugins": "src/plugins"
+    }
+}

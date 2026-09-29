@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>coco-tts 测试台</title>
+  <style>
+    :root {
+      --bg: #101418;
+      --panel: #181d23;
+      --panel-2: #1f252c;
+      --line: #2c343d;
+      --text: #e7edf3;
+      --muted: #8b96a3;
+      --accent: #2f9e8c;
+      --accent-2: #3cb8a4;
+      --warn: #c9a227;
+      --danger: #d46565;
+      --ok: #5cba7a;
+      --chip: #262d35;
+      --radius: 10px;
+      --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1280px; margin: 0 auto; padding: 20px 20px 40px; }
+    header {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 18px;
+    }
+    header h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: 0.02em; }
+    header p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+    .dot.ok { background: var(--ok); }
+    .dot.err { background: var(--danger); }
+    .layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+    .label { font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .providers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .provider {
+      background: var(--chip); border: 1px solid var(--line); border-radius: 8px;
+      padding: 10px 10px 8px; text-align: left;
+    }
+    .provider.active { border-color: var(--accent); background: #1d2b29; }
+    .provider b { display: block; font-size: 14px; }
+    .provider span { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+    .badge { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 10px; margin-left: 6px; }
+    .badge.on { background: #214833; color: #8fe0a8; }
+    .badge.off { background: #3a2a1f; color: #e0b56a; }
+    .search { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+    .voices { max-height: 520px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+    .voice {
+      display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
+      background: var(--panel-2); border: 1px solid transparent; border-radius: 8px; padding: 8px 10px;
+    }
+    .voice:hover { border-color: var(--line); }
+    .voice.active { border-color: var(--accent); background: #1d2b29; }
+    .voice small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .ghost {
+      background: transparent; border: 1px solid var(--line); border-radius: 6px;
+      color: var(--muted); padding: 4px 8px; font-size: 12px;
+    }
+    .ghost:hover { color: var(--text); border-color: var(--accent); }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .row-2 { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 700px) { .row { grid-template-columns: 1fr; } }
+    input[type="text"], select, textarea {
+      width: 100%; background: var(--panel-2); border: 1px solid var(--line);
+      border-radius: 8px; padding: 8px 10px;
+    }
+    textarea { min-height: 150px; resize: vertical; line-height: 1.55; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 14px; }
+    .btn {
+      background: var(--accent); border: 0; border-radius: 8px; color: #06221d;
+      font-weight: 650; padding: 8px 14px;
+    }
+    .btn:hover { background: var(--accent-2); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary { background: var(--chip); color: var(--text); border: 1px solid var(--line); }
+    .check { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+    @media (max-width: 700px) { .stats { grid-template-columns: 1fr 1fr; } }
+    .stat { background: var(--panel-2); border-radius: 8px; padding: 10px; }
+    .stat b { display: block; font-size: 18px; margin-top: 4px; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    audio { width: 100%; margin: 4px 0 12px; }
+    .log {
+      background: #0c0f12; border: 1px solid var(--line); border-radius: 8px;
+      min-height: 160px; max-height: 240px; overflow: auto; padding: 10px;
+      font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.5;
+    }
+    .log .err { color: #f0a0a0; }
+    .log .ok { color: #9be0b4; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .readonly {
+      background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+      padding: 8px 10px; min-height: 38px;
+    }
+    .readonly b { display: block; font-size: 14px; }
+    .readonly small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>coco-tts 测试台</h1>
+        <p>切换提供商、试听音色，输入文本后流式或一次性合成播放</p>
+      </div>
+      <div class="status">
+        <span class="dot" id="healthDot"></span>
+        <span id="healthText">正在连接服务…</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel">
+        <div class="label">提供商</div>
+        <div class="providers" id="providers"></div>
+        <div class="label">语言</div>
+        <select class="search" id="language" title="按语言筛选"></select>
+        <div class="label">音色</div>
+        <input class="search" id="voiceSearch" placeholder="搜索名称 / 语言" />
+        <div class="voices" id="voices"></div>
+      </aside>
+
+      <main class="panel">
+        <div class="field">
+          <label>合成文本</label>
+          <textarea id="text">你好，我是可可台灯。今天天气不错，我们来测一下不同音色的效果。</textarea>
+        </div>
+        <div class="row row-2">
+          <div class="field">
+            <label>当前音色</label>
+            <div class="readonly">
+              <b id="speakerName">请从左侧选择</b>
+              <small id="speakerId"></small>
+            </div>
+          </div>
+          <div class="field">
+            <label>情感</label>
+            <select id="emotion"><option value="">默认</option></select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>语速 speech_rate</label>
+            <input type="text" id="speechRate" placeholder="火山/Qwen 用 0，Azure 用 0%" />
+          </div>
+          <div class="field">
+            <label>音量 loudness_rate</label>
+            <input type="text" id="loudnessRate" placeholder="火山/Qwen 用 0，Azure 用 0%" />
+          </div>
+          <div class="field">
+            <label>模式</label>
+            <select id="mode">
+              <option value="stream">流式输出（Socket.IO）</option>
+              <option value="oneshot">一次性合成（HTTP）</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="playBtn">合成播放</button>
+          <button class="btn secondary" id="stopBtn" disabled>停止</button>
+          <button class="btn secondary" id="downloadBtn" disabled>下载音频</button>
+          <label class="check"><input type="checkbox" id="splitText" checked /> 按句拆成数组增量推送</label>
+        </div>
+        <div class="stats">
+          <div class="stat"><span>首包延迟</span><b id="statFirst">—</b></div>
+          <div class="stat"><span>总耗时</span><b id="statTotal">—</b></div>
+          <div class="stat"><span>音频块 / 大小</span><b id="statSize">—</b></div>
+          <div class="stat"><span>格式</span><b id="statFormat">—</b></div>
+        </div>
+        <audio id="player" controls></audio>
+        <div class="label">日志</div>
+        <div class="log" id="log"></div>
+        <div class="hint">流式走 Socket.IO（CDN msgpack，按左侧提供商建连）。上游空闲 50 秒会主动 tts:disconnect，避免 Qwen 60 秒空闲掐成半开连接；下次合成再复用 Socket.IO 重连上游。一次性走 HTTP。Qwen 流式用 long* 实时音色。</div>
+      </main>
+    </div>
+  </div>
+
+<script src="https://cdn.socket.io/4.8.3/socket.io.msgpack.min.js"></script>
+<script>
+const $ = id => document.getElementById(id)
+const SAMPLE_TEXT = {
+  zh: '你好，我是可可台灯。今天天气不错，我们来测一下不同音色的效果。',
+  en: 'Hello, I am Coco Lamp. The weather is nice today. Let us try out this voice.'
+}
+/** Qwen 空闲约 60s 会掐连接；提前主动 disconnect，避免半开后等 task-started 超时 */
+const UPSTREAM_IDLE_MS = 50000
+const state = {
+  catalog: null,
+  provider: '',
+  voice: null,
+  abort: null,
+  chunks: [],
+  format: 'pcm',
+  sampleRate: 16000,
+  objectUrl: '',
+  socket: null,
+  socketioPort: 3002,
+  pathPrefix: '',
+  upstreamReady: false,
+  upstreamProvider: '',
+  pcmPlayer: null,
+  idleTimer: null,
+  idleSeq: 0,
+  dropInFlight: null
+}
+
+function log(msg, type = '') {
+  const line = document.createElement('div')
+  if (type) line.className = type
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`
+  $('log').appendChild(line)
+  $('log').scrollTop = $('log').scrollHeight
+}
+
+function setHealth(ok, text) {
+  $('healthDot').className = `dot ${ok ? 'ok' : 'err'}`
+  $('healthText').textContent = text
+}
+
+function currentProvider() {
+  return (state.catalog?.providers || []).find(p => p.id === state.provider)
+}
+
+function renderProviders() {
+  $('providers').innerHTML = state.catalog.providers.map(p => {
+    const active = p.id === state.provider ? ' active' : ''
+    const badge = p.configured
+      ? '<span class="badge on">已配置</span>'
+      : '<span class="badge off">未配置</span>'
+    return `<button class="provider${active}" data-id="${p.id}">
+      <b>${p.name}${badge}</b>
+      <span>${p.id} · ${p.format} @ ${p.sampleRate}Hz</span>
+    </button>`
+  }).join('')
+  $('providers').querySelectorAll('.provider').forEach(btn => {
+    btn.onclick = () => selectProvider(btn.dataset.id)
+  })
+}
+
+function languageTags(raw) {
+  return (raw || '').split(/[,，、;/]+/).map(s => s.trim()).filter(Boolean)
+}
+
+function uniqueLanguages(voices) {
+  const set = new Set()
+  for (const voice of voices || []) {
+    for (const tag of languageTags(voice.language)) set.add(tag)
+  }
+  return [...set]
+}
+
+function voiceHasLanguage(voice, lang) {
+  if (!lang) return true
+  return languageTags(voice.language).includes(lang) || voice.language === lang
+}
+
+function fillLanguages(preferred) {
+  const langs = uniqueLanguages(currentProvider()?.voices)
+  const current = preferred === undefined ? $('language').value : preferred
+  const options = ['<option value="">全部</option>']
+    .concat(langs.map(lang => `<option value="${lang}">${lang}</option>`))
+    .join('')
+  $('language').innerHTML = options
+  const next = langs.includes(current) ? current : ''
+  $('language').value = next
+}
+
+function isEnglishLang(lang) {
+  return /english|en-us|en-gb|en-uk|美式英语|英式英语|英文|英语/i.test(lang || '')
+}
+
+function isChineseLang(lang) {
+  return /中文|汉语|普通话|粤语|上海|北京|四川|zh-/i.test(lang || '') && !isEnglishLang(lang)
+}
+
+function sampleKey(lang) {
+  const tags = languageTags(lang)
+  const list = tags.length ? tags : [lang]
+  const hasEn = list.some(isEnglishLang)
+  const hasZh = list.some(isChineseLang)
+  if (hasEn && !hasZh) return 'en'
+  return 'zh'
+}
+
+function applySampleText(lang) {
+  if (!lang) return
+  const next = SAMPLE_TEXT[sampleKey(lang)]
+  const current = $('text').value.trim()
+  const presets = Object.values(SAMPLE_TEXT)
+  if (!current || presets.includes(current)) $('text').value = next
+}
+
+function setLanguage(lang) {
+  $('language').value = lang
+  applySampleText(lang)
+  renderVoices()
+}
+
+function renderVoices() {
+  const q = $('voiceSearch').value.trim().toLowerCase()
+  const lang = $('language').value
+  const provider = currentProvider()
+  const voices = (provider?.voices || []).filter(v => {
+    if (!voiceHasLanguage(v, lang)) return false
+    if (!q) return true
+    return [v.name, v.speaker, v.language, v.group].some(x => (x || '').toLowerCase().includes(q))
+  })
+  $('voices').innerHTML = voices.map(v => {
+    const active = state.voice?.speaker === v.speaker ? ' active' : ''
+    const extra = [v.language, v.group].filter(Boolean).join(' · ')
+    return `<div class="voice${active}" data-speaker="${encodeURIComponent(v.speaker)}">
+      <div>
+        <b>${v.name}</b>
+        <small>${v.speaker}${extra ? ' · ' + extra : ''}</small>
+      </div>
+      <button class="ghost" data-preview="${encodeURIComponent(v.speaker)}">试听</button>
+    </div>`
+  }).join('') || '<div class="hint">没有匹配的音色</div>'
+
+  $('voices').querySelectorAll('.voice').forEach(el => {
+    el.onclick = e => {
+      if (e.target.closest('[data-preview]')) return
+      const speaker = decodeURIComponent(el.dataset.speaker)
+      const voice = provider.voices.find(v => v.speaker === speaker)
+      selectVoice(voice)
+    }
+  })
+  $('voices').querySelectorAll('[data-preview]').forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation()
+      const speaker = decodeURIComponent(btn.dataset.preview)
+      const voice = provider.voices.find(v => v.speaker === speaker)
+      selectVoice(voice)
+      previewVoice(voice)
+    }
+  })
+}
+
+function fillEmotions(voice) {
+  const emotions = voice?.emotions || []
+  $('emotion').innerHTML = ['<option value="">默认</option>']
+    .concat(emotions.map(e => `<option value="${e}">${e}</option>`)).join('')
+}
+
+function clearUpstreamIdle() {
+  if (state.idleTimer) {
+    clearTimeout(state.idleTimer)
+    state.idleTimer = null
+  }
+}
+
+function armUpstreamIdle() {
+  clearUpstreamIdle()
+  if (!state.upstreamReady || state.abort) return
+  const seq = ++state.idleSeq
+  state.idleTimer = setTimeout(() => {
+    if (seq !== state.idleSeq) return
+    if (!state.upstreamReady) return
+    if (state.abort) {
+      armUpstreamIdle()
+      return
+    }
+    log(`上游空闲 ${UPSTREAM_IDLE_MS / 1000}s，发送 tts:disconnect 释放 Qwen 连接`)
+    dropUpstream(state.socket).catch(err => {
+      log(err.message || String(err), 'err')
+    })
+  }, UPSTREAM_IDLE_MS)
+}
+
+function selectProvider(id) {
+  if (state.provider && state.provider !== id) {
+    clearUpstreamIdle()
+    state.upstreamReady = false
+  }
+  state.provider = id
+  const provider = currentProvider()
+  fillLanguages('')
+  const preferred = provider?.voices.find(v => v.speaker === provider.defaultSpeaker) || provider?.voices[0]
+  selectVoice(preferred || null)
+  if (!preferred) showSpeaker(null, provider?.defaultSpeaker)
+  renderProviders()
+  renderVoices()
+  log(`切换提供商 ${provider?.name || id}，默认音色 ${preferred?.name || provider?.defaultSpeaker || '-'}`)
+}
+
+function showSpeaker(voice, speaker) {
+  $('speakerName').textContent = voice?.name || (speaker ? '未命名音色' : '请从左侧选择')
+  $('speakerId').textContent = voice?.speaker || speaker || ''
+}
+
+function selectVoice(voice, keepMode) {
+  state.voice = voice
+  showSpeaker(voice)
+  fillEmotions(voice)
+  if (!keepMode) {
+    if (voice?.group === 'http') $('mode').value = 'oneshot'
+    if (voice?.group === 'realtime') $('mode').value = 'stream'
+  }
+  applySampleText($('language').value || voice?.language || '')
+  renderVoices()
+}
+
+function ensureVoiceMatchesMode(mode) {
+  if (state.provider !== 'qwen') return true
+  const group = state.voice?.group
+  if (!group) return true
+  const need = mode === 'oneshot' ? 'http' : 'realtime'
+  if (group === need) return true
+  const next = currentProvider()?.voices.find(v => v.group === need)
+  if (!next) {
+    log(`当前音色 ${state.voice.name} 不支持${mode === 'oneshot' ? 'HTTP 一次性' : 'Socket.IO 流式'}合成`, 'err')
+    return false
+  }
+  log(`音色 ${state.voice.name} 属于 ${group} 通道，已自动改用 ${next.name}（${need}）`)
+  selectVoice(next, true)
+  $('mode').value = mode
+  return true
+}
+
+function buildBody(text) {
+  const speaker = state.voice?.speaker || ''
+  const emotion = $('emotion').value.trim()
+  const language = $('language').value.trim() || state.voice?.language || ''
+  const speechRate = $('speechRate').value.trim()
+  const loudnessRate = $('loudnessRate').value.trim()
+  const payload = { text, provider: state.provider, deviceSN: 'tts-test-ui' }
+  if (speaker) payload.speaker = speaker
+  if (emotion) payload.emotion = emotion
+  if (language) payload.language = language
+  if (speechRate) payload.speech_rate = speechRate
+  if (loudnessRate) payload.loudness_rate = loudnessRate
+  return payload
+}
+
+function splitSentences(text) {
+  const parts = text.split(/([。！？；!?;\n]+)/).reduce((acc, part, i, arr) => {
+    if (i % 2 === 0) {
+      const next = part + (arr[i + 1] || '')
+      if (next.trim()) acc.push(next)
+    }
+    return acc
+  }, [])
+  return parts.length ? parts : [text]
+}
+
+function resetStats() {
+  ;['statFirst', 'statTotal', 'statSize', 'statFormat'].forEach(id => $(id).textContent = '—')
+}
+
+function createSessionId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = crypto.getRandomValues(new Uint8Array(16))
+    bytes[6] = (bytes[6] & 0x0f) | 0x40
+    bytes[8] = (bytes[8] & 0x3f) | 0x80
+    const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
+
+function pcmToWav(pcm, sampleRate) {
+  const header = new ArrayBuffer(44)
+  const view = new DataView(header)
+  const write = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)) }
+  write(0, 'RIFF')
+  view.setUint32(4, 36 + pcm.byteLength, true)
+  write(8, 'WAVE')
+  write(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  write(36, 'data')
+  view.setUint32(40, pcm.byteLength, true)
+  return new Blob([header, pcm], { type: 'audio/wav' })
+}
+
+class PcmPlayer {
+  constructor(sampleRate) {
+    this.ctx = new AudioContext({ sampleRate })
+    this.next = 0
+    this.pending = new Uint8Array(0)
+  }
+  async resume() {
+    if (this.ctx.state === 'suspended') await this.ctx.resume()
+  }
+  feed(bytes) {
+    const merged = new Uint8Array(this.pending.length + bytes.length)
+    merged.set(this.pending)
+    merged.set(bytes, this.pending.length)
+    const even = merged.length - (merged.length % 2)
+    this.pending = merged.slice(even)
+    if (even === 0) return
+    const samples = new Int16Array(merged.buffer, merged.byteOffset, even / 2)
+    const floats = new Float32Array(samples.length)
+    for (let i = 0; i < samples.length; i++) floats[i] = samples[i] / 32768
+    const buffer = this.ctx.createBuffer(1, floats.length, this.ctx.sampleRate)
+    buffer.getChannelData(0).set(floats)
+    const src = this.ctx.createBufferSource()
+    src.buffer = buffer
+    src.connect(this.ctx.destination)
+    const now = this.ctx.currentTime
+    if (this.next < now + 0.03) this.next = now + 0.03
+    src.start(this.next)
+    this.next += buffer.duration
+  }
+  stop() {
+    this.ctx.close().catch(() => {})
+  }
+}
+
+function attachReplay(blob) {
+  if (state.objectUrl) URL.revokeObjectURL(state.objectUrl)
+  state.objectUrl = URL.createObjectURL(blob)
+  $('player').src = state.objectUrl
+  $('downloadBtn').disabled = false
+}
+
+function setBusy(busy) {
+  $('playBtn').disabled = busy
+  $('stopBtn').disabled = !busy
+}
+
+async function playOneshot(payload) {
+  const started = performance.now()
+  const res = await fetch('/tts/synthesize?format=wav', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: state.abort.signal
+  })
+  const json = await res.json()
+  if (!res.ok || json.code !== 200) throw new Error(json.msg || `HTTP ${res.status}`)
+  const bytes = Uint8Array.from(atob(json.data.audio), c => c.charCodeAt(0))
+  const mime = json.data.format === 'wav' ? 'audio/wav' : json.data.format === 'mp3' ? 'audio/mpeg' : 'application/octet-stream'
+  const blob = new Blob([bytes], { type: mime })
+  attachReplay(blob)
+  $('player').play().catch(() => {})
+  $('statFirst').textContent = Math.round(performance.now() - started) + ' ms'
+  $('statTotal').textContent = (json.data.duration || Math.round(performance.now() - started)) + ' ms'
+  $('statSize').textContent = `${json.data.chunks} / ${json.data.size} B`
+  $('statFormat').textContent = `${json.data.format} @ ${json.data.sampleRate}Hz`
+  log(`一次性合成完成 session=${json.data.sessionId} size=${json.data.size}`, 'ok')
+}
+
+function toUint8(buf) {
+  if (!buf) return new Uint8Array(0)
+  if (buf instanceof Uint8Array) return buf
+  if (buf instanceof ArrayBuffer) return new Uint8Array(buf)
+  if (ArrayBuffer.isView(buf)) return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)
+  if (Array.isArray(buf)) return new Uint8Array(buf)
+  if (buf.type === 'Buffer' && Array.isArray(buf.data)) return new Uint8Array(buf.data)
+  return new Uint8Array(0)
+}
+
+function socketUrl() {
+  const protocol = location.protocol === 'https:' ? 'https:' : 'http:'
+  return `${protocol}//${location.hostname}:${state.socketioPort}`
+}
+
+function waitEvent(socket, event, timeoutMs, sessionId) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      cleanup()
+      reject(new Error(`${event} 超时 ${timeoutMs}ms`))
+    }, timeoutMs)
+    const cleanup = () => {
+      clearTimeout(timer)
+      socket.off(event, onOk)
+      socket.off('tts:error', onErr)
+    }
+    const onOk = res => {
+      if (sessionId && res?.sessionId && res.sessionId !== sessionId) return
+      cleanup()
+      resolve(res)
+    }
+    const onErr = res => {
+      if (sessionId) {
+        if (res?.sessionId && res.sessionId !== sessionId) return
+      } else if (res?.sessionId) {
+        return
+      }
+      cleanup()
+      reject(new Error(res?.error || '上游 TTS 错误'))
+    }
+    socket.on(event, onOk)
+    socket.on('tts:error', onErr)
+  })
+}
+
+function bindSocketLifecycle(socket) {
+  socket.on('tts:disconnected', res => {
+    clearUpstreamIdle()
+    state.upstreamReady = false
+    log(`上游 WebSocket 已断开 code=${res?.code ?? '-'} reason=${res?.reason || '-'}，Socket.IO 连接保持以便重连上游`, 'err')
+  })
+  socket.on('disconnect', reason => {
+    clearUpstreamIdle()
+    state.upstreamReady = false
+    log(`Socket.IO 断开: ${reason}`)
+  })
+}
+
+function ensureSocket() {
+  if (typeof io !== 'function') throw new Error('Socket.IO 客户端未加载')
+  if (state.socket?.connected) return Promise.resolve(state.socket)
+  if (state.socket && !state.socket.active) {
+    clearUpstreamIdle()
+    state.socket.removeAllListeners()
+    state.socket.disconnect()
+    state.socket = null
+    state.upstreamReady = false
+  } else if (state.socket) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('等待 Socket.IO 重连超时')), 10000)
+      state.socket.once('connect', () => {
+        clearTimeout(timer)
+        resolve(state.socket)
+      })
+      state.socket.once('connect_error', err => {
+        clearTimeout(timer)
+        reject(err)
+      })
+    })
+  }
+  return new Promise((resolve, reject) => {
+    const path = `${state.pathPrefix || ''}/socket.io`
+    log(`连接 Socket.IO ${socketUrl()} path=${path}`)
+    const socket = io(socketUrl(), {
+      transports: ['websocket'],
+      path,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      timeout: 10000
+    })
+    let opened = false
+    socket.on('connect', () => {
+      log(`Socket.IO 已连接 id=${socket.id}`, 'ok')
+      if (!opened) {
+        opened = true
+        resolve(socket)
+      }
+    })
+    socket.on('connect_error', err => {
+      if (!opened) {
+        log(`Socket.IO 连接失败: ${err.message}`, 'err')
+        reject(err)
+      } else {
+        log(`Socket.IO 重连失败: ${err.message}`)
+      }
+    })
+    bindSocketLifecycle(socket)
+    state.socket = socket
+  })
+}
+
+async function dropUpstream(socket) {
+  clearUpstreamIdle()
+  state.upstreamReady = false
+  if (state.dropInFlight) return state.dropInFlight
+  state.dropInFlight = (async () => {
+    try {
+      if (!socket?.connected) {
+        state.upstreamProvider = ''
+        return
+      }
+      const wait = waitEvent(socket, 'tts:disconnected', 3000).catch(() => null)
+      socket.emit('tts:disconnect')
+      await wait
+      state.upstreamProvider = ''
+    } finally {
+      state.dropInFlight = null
+    }
+  })()
+  return state.dropInFlight
+}
+
+async function ensureUpstream(socket, provider) {
+  if (state.dropInFlight) await state.dropInFlight
+  if (state.upstreamReady && state.upstreamProvider === provider) {
+    log(`复用上游连接 provider=${provider}`)
+    return
+  }
+  if (state.upstreamReady && state.upstreamProvider !== provider) {
+    log(`释放上游 ${state.upstreamProvider || '-'}，改连 ${provider}`)
+    await dropUpstream(socket)
+  } else if (state.upstreamProvider === provider && !state.upstreamReady) {
+    log(`上游 WebSocket 已失效，复用 Socket.IO 重连 provider=${provider}`)
+  } else if (state.upstreamProvider && state.upstreamProvider !== provider) {
+    log(`释放上游 ${state.upstreamProvider}，改连 ${provider}`)
+    await dropUpstream(socket)
+  }
+  const connected = waitEvent(socket, 'tts:connected', 20000)
+  socket.emit('tts:connect', { deviceSN: 'tts-test-ui', provider })
+  const res = await connected
+  if (!res.success) throw new Error(res.error || 'tts:connect 失败')
+  state.upstreamReady = true
+  state.upstreamProvider = provider
+  state.format = (res.format || 'pcm').toLowerCase()
+  state.sampleRate = res.sampleRate || 16000
+  $('statFormat').textContent = `${state.format} @ ${state.sampleRate}Hz`
+  log(`上游已连接 provider=${provider} ${state.format}@${state.sampleRate}Hz`, 'ok')
+}
+
+async function playStream(payload) {
+  try {
+    await playStreamOnce(payload)
+  } catch (err) {
+    if (err.name === 'AbortError') throw err
+    if (!/not open|尚未建立|connection not open|上游|WebSocket/i.test(err.message || '')) throw err
+    log('上游 WebSocket 已失效，复用 Socket.IO 重连后再试一次')
+    if (state.socket) await dropUpstream(state.socket)
+    await playStreamOnce(payload)
+  }
+}
+
+async function playStreamOnce(payload) {
+  const started = performance.now()
+  clearUpstreamIdle()
+  const socket = await ensureSocket()
+  await ensureUpstream(socket, payload.provider)
+
+  const sessionId = createSessionId()
+  const texts = Array.isArray(payload.text) ? payload.text : [payload.text]
+  const chunks = []
+  let first = 0
+  let format = state.format || 'pcm'
+  let sampleRate = state.sampleRate || 16000
+
+  if (state.pcmPlayer) {
+    state.pcmPlayer.stop()
+    state.pcmPlayer = null
+  }
+
+  const finished = new Promise((resolve, reject) => {
+    const onData = res => {
+      if (res.sessionId && res.sessionId !== sessionId) return
+      const bytes = toUint8(res.buffer)
+      if (!bytes.length) return
+      format = (res.format || format).toLowerCase()
+      sampleRate = res.sampleRate || sampleRate
+      if (!first) {
+        first = performance.now()
+        $('statFirst').textContent = Math.round(first - started) + ' ms'
+        $('statFormat').textContent = `${format} @ ${sampleRate}Hz`
+        log(`首包 ${bytes.length} bytes，延迟 ${Math.round(first - started)}ms index=${res.index} flag=${res.flag}`, 'ok')
+        if (format === 'pcm') {
+          state.pcmPlayer = new PcmPlayer(sampleRate)
+          state.pcmPlayer.resume()
+        }
+      }
+      chunks.push(bytes)
+      $('statSize').textContent = `${chunks.length} / ${chunks.reduce((n, c) => n + c.length, 0)} B`
+      if (state.pcmPlayer) state.pcmPlayer.feed(bytes)
+    }
+    const cleanup = () => {
+      socket.off('tts:data', onData)
+      socket.off('tts:end', onEnd)
+      socket.off('tts:error', onErr)
+      state.abort?.signal.removeEventListener('abort', onAbort)
+    }
+    const onEnd = res => {
+      if (res.sessionId && res.sessionId !== sessionId) return
+      cleanup()
+      if (res.success === false) reject(new Error(res.error || 'tts:end 失败'))
+      else resolve(res)
+    }
+    const onErr = res => {
+      if (res?.sessionId && res.sessionId !== sessionId) return
+      cleanup()
+      state.upstreamReady = false
+      reject(new Error(res.error || '上游 TTS 错误'))
+    }
+    const onAbort = () => {
+      cleanup()
+      socket.emit('tts:interrupt')
+      state.upstreamReady = false
+      reject(Object.assign(new Error('已停止'), { name: 'AbortError' }))
+    }
+    socket.on('tts:data', onData)
+    socket.on('tts:end', onEnd)
+    socket.on('tts:error', onErr)
+    state.abort.signal.addEventListener('abort', onAbort)
+  })
+
+  log(`Socket.IO 会话 start session=${sessionId}`)
+  const startedRes = waitEvent(socket, 'tts:started', 15000, sessionId)
+  socket.emit('tts:start', {
+    sessionId,
+    speaker: payload.speaker,
+    emotion: payload.emotion,
+    language: payload.language,
+    loudness_rate: payload.loudness_rate,
+    speech_rate: payload.speech_rate
+  })
+  const startOk = await startedRes
+  if (!startOk.success) {
+    socket.off('tts:data')
+    socket.off('tts:end')
+    socket.off('tts:error')
+    await dropUpstream(socket)
+    throw new Error(startOk.error || 'tts:start 失败')
+  }
+
+  for (const text of texts) {
+    socket.emit('tts:push', { sessionId, text })
+  }
+  socket.emit('tts:close', { sessionId })
+  const end = await finished
+
+  state.format = format
+  state.sampleRate = sampleRate
+  const total = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0))
+  let offset = 0
+  for (const chunk of chunks) {
+    total.set(chunk, offset)
+    offset += chunk.length
+  }
+  const blob = format === 'pcm'
+    ? pcmToWav(total, sampleRate)
+    : new Blob([total], { type: format === 'mp3' ? 'audio/mpeg' : 'application/octet-stream' })
+  attachReplay(blob)
+  if (format !== 'pcm') $('player').play().catch(() => {})
+  $('statTotal').textContent = Math.round(performance.now() - started) + ' ms'
+  log(`Socket.IO 会话结束 块=${end.index ?? chunks.length} 字节=${total.length}，连接保持以便复用，空闲 ${UPSTREAM_IDLE_MS / 1000}s 后断开`, 'ok')
+  armUpstreamIdle()
+}
+
+async function synthesize(textOverride) {
+  const raw = (textOverride ?? $('text').value).trim()
+  if (!raw) { log('请输入文本', 'err'); return }
+  if (!state.provider) { log('请选择提供商', 'err'); return }
+  stopPlayback()
+  const abort = new AbortController()
+  state.abort = abort
+  resetStats()
+  setBusy(true)
+  const text = $('splitText').checked ? splitSentences(raw) : raw
+  const mode = $('mode').value
+  if (!ensureVoiceMatchesMode(mode)) {
+    setBusy(false)
+    if (state.abort === abort) state.abort = null
+    return
+  }
+  const payload = buildBody(text)
+  log(`请求 ${mode === 'oneshot' ? 'HTTP 一次性' : 'Socket.IO 流式'} provider=${payload.provider} speaker=${payload.speaker || '(default)'} text=${Array.isArray(text) ? text.join(' | ') : text}`)
+  try {
+    if (mode === 'oneshot') await playOneshot(payload)
+    else await playStream(payload)
+  } catch (err) {
+    if (err.name === 'AbortError') log('已停止')
+    else log(err.message || String(err), 'err')
+  } finally {
+    setBusy(false)
+    if (state.abort === abort) state.abort = null
+    if (state.upstreamReady) armUpstreamIdle()
+  }
+}
+
+function previewVoice(voice) {
+  $('mode').value = voice.group === 'http' ? 'oneshot' : 'stream'
+  const lang = $('language').value || voice.language || ''
+  const text = sampleKey(lang) === 'en'
+    ? `Hi, I am ${voice.name}. This is a voice preview.`
+    : `你好，我是${voice.name}。这是一段音色试听。`
+  synthesize(text)
+}
+
+function stopPlayback() {
+  if (state.abort) state.abort.abort()
+  if (state.pcmPlayer) {
+    state.pcmPlayer.stop()
+    state.pcmPlayer = null
+  }
+  $('player').pause()
+}
+
+function downloadAudio() {
+  if (!state.objectUrl) return
+  const a = document.createElement('a')
+  a.href = state.objectUrl
+  a.download = `tts-${state.provider}-${Date.now()}.${state.format === 'pcm' ? 'wav' : state.format}`
+  a.click()
+}
+
+async function boot() {
+  $('playBtn').onclick = () => synthesize()
+  $('stopBtn').onclick = stopPlayback
+  $('downloadBtn').onclick = downloadAudio
+  $('voiceSearch').oninput = renderVoices
+  $('language').onchange = () => setLanguage($('language').value)
+  $('mode').onchange = () => ensureVoiceMatchesMode($('mode').value)
+  try {
+    const [healthRes, voicesRes] = await Promise.all([
+      fetch('/health'),
+      fetch('/tts/voices')
+    ])
+    const health = await healthRes.json()
+    const voices = await voicesRes.json()
+    if (voices.code !== 200) throw new Error(voices.msg || '音色目录加载失败')
+    state.catalog = voices.data
+    const cfg = health.data?.config || {}
+    state.socketioPort = 3002
+    state.pathPrefix = ''
+    setHealth(true, `${cfg.ttsServiceType || voices.data.current} · HTTP :${location.port || 3003} / Socket.IO :${state.socketioPort}`)
+    selectProvider(voices.data.current || voices.data.providers[0]?.id)
+    log(`服务就绪，环境默认提供商 ${voices.data.current}。流式 Socket.IO 使用服务端 TTS_SERVICE_TYPE，端口 ${state.socketioPort}`)
+    window.addEventListener('pagehide', () => {
+      clearUpstreamIdle()
+      if (state.socket?.connected && (state.upstreamReady || state.upstreamProvider)) {
+        state.upstreamReady = false
+        state.socket.emit('tts:disconnect')
+      }
+    })
+  } catch (err) {
+    setHealth(false, '无法连接 coco-tts，请先启动服务')
+    log(err.message || String(err), 'err')
+  }
+}
+
+boot()
+</script>
+</body>
+</html>

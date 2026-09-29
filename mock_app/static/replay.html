@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>对话日志回放</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font: 15px system-ui;
+        background: #0d141b;
+        color: #e2e8f0;
+      }
+      body {
+        max-width: 1100px;
+        margin: 32px auto;
+        padding: 0 20px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      p {
+        color: #94a3b8;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      a {
+        color: #5eead4;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 20px;
+        background: #172130;
+        border-radius: 12px;
+      }
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+      button,
+      select {
+        padding: 9px 14px;
+        border: 1px solid #334155;
+        border-radius: 7px;
+        background: #1e293b;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      button.primary {
+        background: #0f766e;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      select {
+        max-width: 100%;
+      }
+      #status {
+        min-height: 24px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      progress {
+        width: 100%;
+        height: 12px;
+        accent-color: #2dd4bf;
+      }
+      .message {
+        margin: 16px 0;
+        padding: 16px;
+        background: #1e293b;
+        border-radius: 12px;
+        overflow-wrap: anywhere;
+      }
+      .message.user {
+        background: #164e63;
+        margin-left: 15%;
+      }
+      .message small {
+        display: block;
+        color: #94a3b8;
+        margin-bottom: 8px;
+      }
+      .message .text {
+        white-space: pre-wrap;
+        line-height: 1.7;
+      }
+      .done {
+        font-size: 13px;
+        color: #94a3b8;
+        margin: 12px;
+      }
+      #messages:empty::after {
+        content: "选择日志文件，点击开始回放。";
+        display: block;
+        text-align: center;
+        color: #64748b;
+        padding: 80px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>对话日志回放</h1>
+      <a href="/">返回聊天</a>
+    </header>
+    <p>
+      本地读取 JSON / NDJSON，按原始时间回放文本和音频。不会连接云端或发送请求。
+    </p>
+    <div class="controls">
+      <label
+        >日志文件
+        <input
+          id="file"
+          type="file"
+          accept=".json,.ndjson,.jsonl,application/json"
+      /></label>
+      <label
+        >轮次 / 连接
+        <select id="turn" disabled></select
+      ></label>
+      <label><input id="inputAudio" type="checkbox" /> 播放用户录音</label>
+      <button id="play" class="primary" disabled>开始回放</button
+      ><button id="stop" disabled>停止</button>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+    <progress id="progress" max="1" value="0"></progress>
+    <main id="messages"></main>
+    <script src="replay-core.js"></script>
+    <script src="replay.js"></script>
+  </body>
+</html>

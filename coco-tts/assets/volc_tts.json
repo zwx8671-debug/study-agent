@@ -1,0 +1,327 @@
+{
+  "voice_data": [
+    {
+      "voice_name": "冷酷哥哥",
+      "voice_type": "zh_male_lengkugege_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "angry",
+        "coldness",
+        "fear",
+        "happy",
+        "hate",
+        "neutral",
+        "sad",
+        "depressed"
+      ]
+    },    {
+      "voice_name": "弯弯小何",
+      "voice_type": "zh_female_wanwanxiaohe_moon_bigtts",
+      "language": "中文",
+      "emotion": []
+    },
+    {
+      "voice_name": "懒羊羊",
+      "voice_type": "zh_male_lanxiaoyang_mars_bigtts",
+      "language": "中文",
+      "emotion": []
+    },
+    {
+      "voice_name": "海绵宝宝",
+      "voice_type": "zh_male_dongmanhaimian_mars_bigtts",
+      "language": "中文",
+      "emotion": []
+    },
+    {
+      "voice_name": "樱桃小丸子",
+      "voice_type": "zh_female_yingtaowanzi_mars_bigtts",
+      "language": "中文",
+      "emotion": []
+    },
+    {
+      "voice_name": "广西口音",
+      "voice_type": "zh_male_guangxiyuanzhou_moon_bigtts",
+      "language": "中文",
+      "emotion": []
+    },
+    {
+      "voice_name": "甜心小美",
+      "voice_type": "zh_female_tianxinxiaomei_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "sad",
+        "fear",
+        "hate",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "高冷御姐",
+      "voice_type": "zh_female_gaolengyujie_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "happy",
+        "sad",
+        "angry",
+        "surprised",
+        "fear",
+        "hate",
+        "excited",
+        "coldness",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "傲娇霸总",
+      "voice_type": "zh_male_aojiaobazong_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "neutral",
+        "happy",
+        "angry",
+        "hate"
+      ]
+    },
+    {
+      "voice_name": "广州德哥",
+      "voice_type": "zh_male_guangzhoudege_emo_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "angry",
+        "fear",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "京腔侃爷",
+      "voice_type": "zh_male_jingqiangkanye_emo_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "happy",
+        "angry",
+        "surprised",
+        "hate",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "邻居阿姨",
+      "voice_type": "zh_female_linjuayi_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "neutral",
+        "angry",
+        "coldness",
+        "depressed",
+        "surprised"
+      ]
+    },
+    {
+      "voice_name": "优柔公子",
+      "voice_type": "zh_male_yourougongzi_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "happy",
+        "angry",
+        "fear",
+        "hate",
+        "excited",
+        "neutral",
+        "depressed"
+      ]
+    },
+    {
+      "voice_name": "儒雅男友",
+      "voice_type": "zh_male_ruyayichen_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "happy",
+        "sad",
+        "angry",
+        "fear",
+        "excited",
+        "coldness",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "俊朗男友",
+      "voice_type": "zh_male_junlangnanyou_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "happy",
+        "sad",
+        "angry",
+        "surprised",
+        "fear",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "北京小爷",
+      "voice_type": "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "angry",
+        "surprised",
+        "fear",
+        "excited",
+        "coldness",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "柔美女友",
+      "voice_type": "zh_female_roumeinvyou_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "happy",
+        "sad",
+        "angry",
+        "surprised",
+        "fear",
+        "hate",
+        "excited",
+        "coldness",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "阳光青年",
+      "voice_type": "zh_male_yangguangqingnian_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "happy",
+        "sad",
+        "angry",
+        "fear",
+        "excited",
+        "coldness",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "魅力女友",
+      "voice_type": "zh_female_meilinvyou_emo_v2_mars_bigtts",
+      "language": "中文",
+      "emotion": [
+        "sad",
+        "fear",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "爽快思思",
+      "voice_type": "zh_female_shuangkuaisisi_emo_v2_mars_bigtts",
+      "language": "中文，英式英语",
+      "emotion": [
+        "happy",
+        "sad",
+        "angry",
+        "surprised",
+        "excited",
+        "coldness",
+        "neutral"
+      ]
+    },
+    {
+      "voice_name": "Candice",
+      "voice_type": "en_female_candice_emo_v2_mars_bigtts",
+      "language": "美式英语",
+      "emotion": [
+        "affectionate",
+        "angry",
+        "asmr",
+        "chat",
+        "excited",
+        "happy",
+        "neutral",
+        "warm"
+      ]
+    },
+    {
+      "voice_name": "Serena",
+      "voice_type": "en_female_skye_emo_v2_mars_bigtts",
+      "language": "美式英语",
+      "emotion": [
+        "affectionate",
+        "angry",
+        "asmr",
+        "chat",
+        "excited",
+        "happy",
+        "neutral",
+        "sad",
+        "warm"
+      ]
+    },
+    {
+      "voice_name": "Glen",
+      "voice_type": "en_male_glen_emo_v2_mars_bigtts",
+      "language": "美式英语",
+      "emotion": [
+        "affectionate",
+        "angry",
+        "asmr",
+        "chat",
+        "affectionate",
+        "excited",
+        "happy",
+        "neutral",
+        "sad",
+        "warm"
+      ]
+    },
+    {
+      "voice_name": "Sylus",
+      "voice_type": "en_male_sylus_emo_v2_mars_bigtts",
+      "language": "美式英语",
+      "emotion": [
+        "affectionate",
+        "angry",
+        "asmr",
+        "authoritative",
+        "chat",
+        "excited",
+        "happy",
+        "neutral",
+        "sad",
+        "warm"
+      ]
+    },
+    {
+      "voice_name": "Corey",
+      "voice_type": "en_male_corey_emo_v2_mars_bigtts",
+      "language": "英式英语",
+      "emotion": [
+        "angry",
+        "asmr",
+        "authoritative",
+        "chat",
+        "affectionate",
+        "excited",
+        "happy",
+        "neutral",
+        "sad",
+        "warm"
+      ]
+    },
+    {
+      "voice_name": "Nadia",
+      "voice_type": "en_female_nadia_tips_emo_v2_mars_bigtts",
+      "language": "英式英语",
+      "emotion": [
+        "affectionate",
+        "angry",
+        "asmr",
+        "chat",
+        "affectionate",
+        "excited",
+        "happy",
+        "neutral",
+        "sad",
+        "warm"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "type": "update",
+  "stateData": [
+    {
+      "name": "status:hw:arm",
+      "desc": "机械臂当前姿态",
+      "value": "末端坐标:(421, -353, 72), 关节角(用户角, 最小0度) base:126, shoulder=0, elbow=114",
+      "type": "json"
+    },
+    {
+      "name": "status:hw:gimbal",
+      "desc": "云台当前姿态",
+      "value": "水平角(左正右负, -145~145):-41, 俯仰角(上正下负, -90~90):-1, 缩放倍率:1.0)",
+      "type": "json"
+    }
+  ]
+}

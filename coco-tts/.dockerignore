@@ -1,0 +1,12 @@
+node_modules
+dist
+logs
+.git
+.idea
+.vscode
+*.log
+*.wav
+*.pcm
+*.mp3
+.env
+.env.local

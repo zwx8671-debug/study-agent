@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trace 时延看板</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="inner">
+        <div class="brand">Trace 时延看板</div>
+        <select id="traceSelect" disabled title="选择 trace 文件">
+          <option>加载中…</option>
+        </select>
+        <span class="small faint mono" id="srcDir"></span>
+        <div class="spacer"></div>
+        <button class="btn" id="openBtn" title="打开本地 trace JSON 文件">打开文件</button>
+        <button class="btn" id="summaryBtn" title="汇总全部 trace 的链路时延" disabled>汇总</button>
+        <button class="btn" id="copyBtn" title="把核心数值复制为纯文本">复制摘要</button>
+        <button class="btn" id="themeBtn">浅色</button>
+        <input type="file" id="fileInput" accept=".json,application/json" hidden />
+        <input type="file" id="summaryFileInput" accept=".json,application/json" multiple hidden />
+      </div>
+    </header>
+
+    <main class="wrap" id="view">
+      <div class="drop">正在加载…</div>
+    </main>
+
+    <script src="trace-model.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

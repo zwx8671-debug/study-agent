@@ -1,0 +1,8 @@
+{
+  "trace_view": {
+    "enabled": true,
+    "path": "D:/project/py/trace_view",
+    "host": "127.0.0.1",
+    "port": 8912
+  }
+}

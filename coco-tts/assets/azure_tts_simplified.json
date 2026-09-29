@@ -1,0 +1,147 @@
+{
+  "voice_data": [
+    {
+      "voice_name": "晓晓 多语言",
+      "voice_type": "zh-CN-XiaoxiaoMultilingualNeural",
+      "language": "zh-CN",
+      "emotion": [
+        "affectionate",
+        "cheerful",
+        "empathetic",
+        "excited",
+        "poetry-reading",
+        "sorry"
+      ]
+    },
+    {
+      "voice_name": "云希",
+      "voice_type": "zh-CN-YunxiNeural",
+      "language": "zh-CN",
+      "emotion": [
+        "narration-relaxed",
+        "embarrassed",
+        "fearful",
+        "cheerful",
+        "disgruntled",
+        "serious"
+      ]
+    },
+    {
+      "voice_name": "晓伊",
+      "voice_type": "zh-CN-XiaoyiNeural",
+      "language": "zh-CN",
+      "emotion": [
+        "angry",
+        "disgruntled",
+        "affectionate",
+        "cheerful",
+        "fearful",
+        "sad"
+      ]
+    },
+    {
+      "voice_name": "云健",
+      "voice_type": "zh-CN-YunjianNeural",
+      "language": "zh-CN",
+      "emotion": [
+        "narration-relaxed",
+        "sports-commentary",
+        "sports-commentary-excited",
+        "angry",
+        "cheerful",
+        "sad"
+      ]
+    },
+    {
+      "voice_name": "晓悠 多语言",
+      "voice_type": "zh-CN-XiaoyouMultilingualNeural",
+      "language": "zh-CN",
+      "emotion": [
+        "chat",
+        "angry",
+        "cheerful",
+        "poetry-reading",
+        "sad",
+        "story"
+      ]
+    },
+    {
+      "voice_name": "云泽",
+      "voice_type": "zh-CN-YunzeNeural",
+      "language": "zh-CN",
+      "emotion": [
+        "calm",
+        "fearful",
+        "cheerful",
+        "disgruntled",
+        "serious",
+        "angry"
+      ]
+    },
+    {
+      "voice_name": "Jenny Multilingual",
+      "voice_type": "en-US-JennyMultilingualNeural",
+      "language": "en-US",
+      "emotion": [
+        "assistant",
+        "chat",
+        "customerservice",
+        "newscast",
+        "angry",
+        "cheerful"
+      ]
+    },
+    {
+      "voice_name": "Guy",
+      "voice_type": "en-US-GuyNeural",
+      "language": "en-US",
+      "emotion": [
+        "newscast",
+        "angry",
+        "cheerful",
+        "sad",
+        "excited",
+        "friendly"
+      ]
+    },
+    {
+      "voice_name": "Davis",
+      "voice_type": "en-US-DavisNeural",
+      "language": "en-US",
+      "emotion": [
+        "chat",
+        "angry",
+        "cheerful",
+        "excited",
+        "friendly",
+        "hopeful"
+      ]
+    },
+    {
+      "voice_name": "Serena Multilingual",
+      "voice_type": "en-US-SerenaMultilingualNeural",
+      "language": "en-US",
+      "emotion": [
+        "empathetic",
+        "excited",
+        "friendly",
+        "shy",
+        "serious",
+        "relieved"
+      ]
+    },
+    {
+      "voice_name": "Steffan Multilingual",
+      "voice_type": "en-US-SteffanMultilingualNeural",
+      "language": "en-US",
+      "emotion": [
+        "neutral",
+        "happy",
+        "sad",
+        "angry",
+        "cheerful",
+        "excited"
+      ]
+    }
+  ]
+}

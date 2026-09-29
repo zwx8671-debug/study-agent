@@ -1,0 +1,144 @@
+{
+  "traceId": "01a08b1f-267c-730a-9338-75743048b7cf",
+  "schemaVersion": 3,
+  "createdAt": 1789040469634,
+  "timestamps": {
+    "edge": {
+      "audioInputStartMs": 1789040469635,
+      "chatEmitFirstMs": 1789040469635,
+      "chatEmitLastMs": 1789040469668,
+      "audioInputEndMs": 1789040469668,
+      "chatResponseFirstRecvMs": 1789040470542,
+      "chatResponseLastRecvMs": 1789040475950,
+      "firstAudioShellPushMs": 1789040471780,
+      "audioOutputFirstMs": 1789040472471,
+      "audioOutputLastMs": 1789040481941,
+      "shellDoneMs": 1789040476004
+    },
+    "cloud": {
+      "chatResponseFirstSentTime": 1789040470529,
+      "chatResponseLastSentTime": 1789040475942,
+      "userFirstPacketTime": 1789040469630,
+      "userLastPacketTime": 1789040469662,
+      "sttStartTime": 1789040469632,
+      "sttCompleteTime": 1789040470171,
+      "dataPrepStartTime": 1789040470171,
+      "dataPrepCompleteTime": 1789040470527,
+      "connectionTTSStartTime": 1789040470172,
+      "connectionTTSCompleteTime": 1789040470348,
+      "llmFirstPacketTime": 1789040471771,
+      "funcTokenFirstPacketTime": 1789040471771,
+      "llmLastPacketTime": 1789040475939,
+      "ttsFirstPacketTime": 1789040472463,
+      "ttsLastPacketTime": 1789040481932
+    }
+  },
+  "chatResponseFirstPackets": [
+    {
+      "index": 1,
+      "recvMs": 1789040470542,
+      "userEndDelayMs": 874,
+      "packet": {
+        "id": "01a08b1f-267c-730a-9338-75743048b7cf",
+        "role": "assistant",
+        "flag": 0,
+        "timestamp": 1789040470529
+      }
+    },
+    {
+      "index": 2,
+      "recvMs": 1789040470544,
+      "userEndDelayMs": 876,
+      "packet": {
+        "id": "01a08b1f-267c-730a-9338-75743048b7cf",
+        "role": "assistant",
+        "flag": 1,
+        "timestamp": 1789040470530,
+        "idx": 0,
+        "name": "root",
+        "pattern": 1,
+        "params": {},
+        "text": "",
+        "audioId": "",
+        "token": ""
+      }
+    },
+    {
+      "index": 3,
+      "recvMs": 1789040471780,
+      "userEndDelayMs": 2112,
+      "packet": {
+        "id": "01a08b1f-267c-730a-9338-75743048b7cf",
+        "role": "assistant",
+        "flag": 1,
+        "timestamp": 1789040471771,
+        "idx": 1,
+        "name": "",
+        "pattern": 0,
+        "params": {},
+        "text": "好的",
+        "audioId": "01a08b1f-2edb-765f-8750-e10804faf80d",
+        "token": "好的"
+      }
+    }
+  ],
+  "toolCalls": [],
+  "clock": {
+    "mode": "ntp",
+    "expectedSkewMs": 10
+  },
+  "transportMs": {
+    "uplink": {
+      "first": -5,
+      "last": -6,
+      "avg": -5,
+      "firstSendMs": 1789040469635,
+      "firstRecvMs": 1789040469630,
+      "lastSendMs": 1789040469668,
+      "lastRecvMs": 1789040469662
+    },
+    "downlinkCommand": {
+      "first": 13,
+      "last": 8,
+      "avg": 11,
+      "firstSendMs": 1789040470529,
+      "firstRecvMs": 1789040470542,
+      "lastSendMs": 1789040475942,
+      "lastRecvMs": 1789040475950
+    },
+    "downlinkAudio": {
+      "first": 8,
+      "last": 9,
+      "avg": 9,
+      "firstSendMs": 1789040472463,
+      "firstRecvMs": 1789040472471,
+      "lastSendMs": 1789040481932,
+      "lastRecvMs": 1789040481941
+    }
+  },
+  "stageMs": {
+    "edge": {
+      "audioInputSpan": 33,
+      "audioInputEndToChatEmitEnd": 0,
+      "uplinkEndToFirstChatResponse": 874,
+      "uplinkEndToFirstAudioShellPush": 2112,
+      "uplinkEndToFirstAudioOutput": 2803,
+      "audioOutputSpan": 9470,
+      "uplinkEndToShellDone": 6336
+    },
+    "cloud": {
+      "sttCompleteDelay": 509,
+      "dataPrepDuration": 356,
+      "connectionTTSDuration": 176,
+      "llmFirstPacketDelay": 2109,
+      "funcTokenFirstPacketDelay": 2109,
+      "ttsFirstPacketDelay": 2801,
+      "chatResponseFirstSentDelay": 867
+    }
+  },
+  "diagnostics": [
+    "无 awakeMs：非语音会话，或未收到唤醒",
+    "无 firstCommandShellPushMs：本轮云端只回了语音，没有业务指令"
+  ],
+  "updatedAt": 1789040481943
+}

@@ -1,0 +1,158 @@
+{
+  "voice_data": [
+    {
+      "voice_name": "龙安欢",
+      "voice_type": "longanhuan_v3.6",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "龙安风悦",
+      "voice_type": "longanfengyue",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "龙安元妃",
+      "voice_type": "longanyuanfei",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "龙安灵希",
+      "voice_type": "longanlingxi",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "龙安小昕",
+      "voice_type": "longanxiaoxin",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "龙杰力豆",
+      "voice_type": "longjielidou_v3.6",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "龙泡泡",
+      "voice_type": "longpaopao_v3.6",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "龙火火",
+      "voice_type": "longhuohuo_v3.6",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "龙川叔",
+      "voice_type": "longchuanshu_v3.6",
+      "language": "中文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "loongmary",
+      "voice_type": "loongmary",
+      "language": "英文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "loongeva",
+      "voice_type": "loongeva_v3.6",
+      "language": "英文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "loongJohn",
+      "voice_type": "loongjohn",
+      "language": "英文",
+      "emotion": [],
+      "group": "realtime"
+    },
+    {
+      "voice_name": "芊悦",
+      "voice_type": "Cherry",
+      "language": "中文",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "苏瑶",
+      "voice_type": "Serena",
+      "language": "中文",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "晨煦",
+      "voice_type": "Ethan",
+      "language": "中文",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "千雪",
+      "voice_type": "Chelsie",
+      "language": "中文",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "茉兔",
+      "voice_type": "Momo",
+      "language": "中文",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "上海-阿珍",
+      "voice_type": "Jada",
+      "language": "上海话",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "北京-晓东",
+      "voice_type": "Dylan",
+      "language": "北京话",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "四川-晴儿",
+      "voice_type": "Sunny",
+      "language": "四川话",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "粤语-阿强",
+      "voice_type": "Rocky",
+      "language": "粤语",
+      "emotion": [],
+      "group": "http"
+    },
+    {
+      "voice_name": "粤语-阿清",
+      "voice_type": "Kiki",
+      "language": "粤语",
+      "emotion": [],
+      "group": "http"
+    }
+  ]
+}

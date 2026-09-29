@@ -1,0 +1,51 @@
+{
+    "index": {
+        "hello": "你好",
+        "welcome": "欢迎",
+        "goodbye": "再见",
+        "success": "成功",
+        "error": "错误",
+        "loading": "加载中...",
+        "save": "保存",
+        "cancel": "取消",
+        "confirm": "确认",
+        "delete": "删除",
+        "edit": "编辑",
+        "create": "创建",
+        "update": "更新"
+    },
+    "user": {
+        "login": "登录",
+        "logout": "登出",
+        "register": "注册",
+        "profile": "个人资料",
+        "settings": "设置",
+        "username": "用户名",
+        "password": "密码",
+        "email": "邮箱"
+    },
+    "agent": {
+        "agent": "智能体",
+        "agents": "智能体列表",
+        "create_agent": "创建智能体",
+        "edit_agent": "编辑智能体",
+        "delete_agent": "删除智能体",
+        "agent_name": "智能体名称",
+        "agent_description": "智能体描述"
+    },
+    "message": {
+        "message": "消息",
+        "messages": "消息列表",
+        "send_message": "发送消息",
+        "receive_message": "接收消息",
+        "message_content": "消息内容"
+    },
+    "errors": {
+        "not_found": "未找到",
+        "unauthorized": "未授权",
+        "forbidden": "禁止访问",
+        "internal_server_error": "内部服务器错误",
+        "bad_request": "请求错误",
+        "validation_error": "验证错误"
+    }
+}

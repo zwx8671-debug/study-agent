@@ -1,0 +1,11 @@
+{
+    "resolveFullPaths": true,
+    "replacers": {
+        "@config": "./src/config",
+        "@utils": "./src/utils",
+        "@interface": "./src/interfaces",
+        "@service": "./src/services",
+        "@controller": "./src/controllers",
+        "@socketio": "./src/socketio"
+    }
+}

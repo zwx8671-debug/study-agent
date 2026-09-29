@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>coco-stt 测试台</title>
+  <style>
+    :root {
+      --bg: #101418;
+      --panel: #181d23;
+      --panel-2: #1f252c;
+      --line: #2c343d;
+      --text: #e7edf3;
+      --muted: #8b96a3;
+      --accent: #2f9e8c;
+      --accent-2: #3cb8a4;
+      --warn: #c9a227;
+      --danger: #d46565;
+      --ok: #5cba7a;
+      --chip: #262d35;
+      --radius: 10px;
+      --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1280px; margin: 0 auto; padding: 20px 20px 40px; }
+    header {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 18px;
+    }
+    header h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: 0.02em; }
+    header p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+    .dot.ok { background: var(--ok); }
+    .dot.err { background: var(--danger); }
+    .dot.rec { background: var(--danger); box-shadow: 0 0 0 4px rgba(212, 101, 101, 0.25); }
+    .layout { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+    .label { font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .providers { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .provider {
+      background: var(--chip); border: 1px solid var(--line); border-radius: 8px;
+      padding: 10px 10px 8px; text-align: left;
+    }
+    .provider.active { border-color: var(--accent); background: #1d2b29; }
+    .provider b { display: block; font-size: 14px; }
+    .provider span { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+    .badge { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 10px; margin-left: 6px; }
+    .badge.on { background: #214833; color: #8fe0a8; }
+    .badge.off { background: #3a2a1f; color: #e0b56a; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .row-2 { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 700px) { .row, .row-2 { grid-template-columns: 1fr; } }
+    input[type="text"], input[type="url"], select, textarea {
+      width: 100%; background: var(--panel-2); border: 1px solid var(--line);
+      border-radius: 8px; padding: 8px 10px;
+    }
+    textarea { min-height: 140px; resize: vertical; line-height: 1.55; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 14px; }
+    .btn {
+      background: var(--accent); border: 0; border-radius: 8px; color: #06221d;
+      font-weight: 650; padding: 8px 14px;
+    }
+    .btn:hover { background: var(--accent-2); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary { background: var(--chip); color: var(--text); border: 1px solid var(--line); }
+    .btn.danger { background: #7a2e2e; color: #ffd6d6; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+    @media (max-width: 700px) { .stats { grid-template-columns: 1fr 1fr; } }
+    .stat { background: var(--panel-2); border-radius: 8px; padding: 10px; }
+    .stat b { display: block; font-size: 18px; margin-top: 4px; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    audio { width: 100%; margin: 4px 0 12px; }
+    .log {
+      background: #0c0f12; border: 1px solid var(--line); border-radius: 8px;
+      min-height: 140px; max-height: 220px; overflow: auto; padding: 10px;
+      font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.5;
+    }
+    .log .err { color: #f0a0a0; }
+    .log .ok { color: #9be0b4; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .readonly {
+      background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+      padding: 8px 10px; min-height: 38px;
+    }
+    .readonly b { display: block; font-size: 14px; }
+    .readonly small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; word-break: break-all; }
+    .file-row { display: flex; gap: 8px; align-items: center; }
+    .file-row input[type="file"] { flex: 1; font-size: 12px; }
+    .live { min-height: 72px; }
+    .live .partial { color: var(--muted); }
+    .hidden { display: none; }
+    .check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 8px 0; }
+    .check input { accent-color: var(--accent); }
+    .meter { height: 8px; background: #0c0f12; border-radius: 99px; overflow: hidden; margin: 8px 0 12px; border: 1px solid var(--line); }
+    .meter > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 80ms linear; }
+    .params { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>coco-stt 测试台</h1>
+        <p>麦克风流式识别（Socket.IO 写在本页），可切换提供商并调整识别参数</p>
+      </div>
+      <div class="status">
+        <span class="dot" id="healthDot"></span>
+        <span id="healthText">正在连接服务…</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel">
+        <div class="label">提供商</div>
+        <div class="providers" id="providers"></div>
+        <div class="label">当前引擎</div>
+        <div class="readonly">
+          <b id="providerName">请选择提供商</b>
+          <small id="providerMeta"></small>
+        </div>
+        <div class="params">
+          <div class="label">参数设置</div>
+          <div id="providerParams"></div>
+          <div class="field">
+            <label>设备 SN</label>
+            <input type="text" id="deviceSN" value="stt-test-ui" />
+          </div>
+          <div class="field">
+            <label>Socket.IO 端口</label>
+            <input type="text" id="socketPort" placeholder="4000" />
+          </div>
+          <label class="check"><input type="checkbox" id="echoCancel" checked /> 回声消除</label>
+          <label class="check"><input type="checkbox" id="noiseSuppress" checked /> 噪声抑制</label>
+          <div class="label">麦克风电平</div>
+          <div class="meter"><i id="micLevel"></i></div>
+        </div>
+      </aside>
+
+      <main class="panel">
+        <div class="row">
+          <div class="field">
+            <label>模式</label>
+            <select id="mode">
+              <option value="stream">流式识别（Socket.IO）</option>
+              <option value="oneshot">一次性识别（HTTP WAV）</option>
+              <option value="file">文件识别（火山引擎）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>语言</label>
+            <select id="language"></select>
+          </div>
+          <div class="field">
+            <label>音频来源</label>
+            <select id="source">
+              <option value="upload">文件切片流式上传</option>
+              <option value="mic">麦克风实时采集</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" id="uploadField">
+          <label>音频文件</label>
+          <div class="file-row">
+            <input type="file" id="fileInput" accept="audio/*,.wav,.pcm,.mp3" />
+            <button class="btn secondary" id="clearFileBtn" type="button">清除</button>
+          </div>
+          <div class="hint" id="fileHint">推荐切片文件：D:\\Users\\AA\\Music\\请听到叮的声音后，匀速自然朗读：123456789.wav</div>
+        </div>
+
+        <div class="field hidden" id="urlField">
+          <label>音频 URL（文件识别可选，与本地文件二选一）</label>
+          <input type="url" id="fileUrl" placeholder="https://example.com/audio.wav" />
+        </div>
+
+        <div class="toolbar">
+          <button class="btn" id="startBtn">开始识别</button>
+          <button class="btn danger" id="stopBtn" disabled>停止</button>
+          <button class="btn secondary" id="clearBtn">清空结果</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><span>首字延迟</span><b id="statFirst">—</b></div>
+          <div class="stat"><span>总耗时</span><b id="statTotal">—</b></div>
+          <div class="stat"><span>音频块 / 大小</span><b id="statSize">—</b></div>
+          <div class="stat"><span>格式</span><b id="statFormat">—</b></div>
+        </div>
+
+        <div class="field">
+          <label>识别文本</label>
+          <div class="readonly live" id="transcript">
+            <b id="finalText">等待识别…</b>
+            <small class="partial" id="partialText"></small>
+          </div>
+        </div>
+
+        <audio id="player" controls></audio>
+        <div class="label">日志</div>
+        <div class="log" id="log"></div>
+        <div class="hint">流式走 Socket.IO（CDN msgpack，16kHz 单声道 PCM）。一次性走 POST /stt/recognize。文件识别仅火山引擎。</div>
+      </main>
+    </div>
+  </div>
+
+<script src="https://cdn.socket.io/4.8.3/socket.io.msgpack.min.js"></script>
+<script>
+const $ = id => document.getElementById(id)
+const SAMPLE_RATE = 16000
+const FRAME_MS = 128
+const FRAME_BYTES = SAMPLE_RATE * 2 * FRAME_MS / 1000
+const LANGUAGE_OPTIONS = [
+  { value: 'zh-CN', label: 'zh-CN 中文' },
+  { value: 'en-US', label: 'en-US English' },
+  { value: 'ja-JP', label: 'ja-JP 日本語' }
+]
+const PROVIDER_PARAMS = {
+  volcengine: [
+    { key: 'language', label: '语言', type: 'select', options: LANGUAGE_OPTIONS, defaultValue: 'zh-CN' },
+    { key: 'enableItn', label: 'ITN 数字规范化', type: 'boolean', defaultValue: true },
+    { key: 'enablePunc', label: '标点', type: 'boolean', defaultValue: true },
+    { key: 'resultType', label: '结果类型', type: 'select', options: [
+      { value: 'full', label: 'full 全量' },
+      { value: 'single', label: 'single 增量' }
+    ], defaultValue: 'full' }
+  ],
+  azure: [
+    { key: 'language', label: '语言', type: 'select', options: LANGUAGE_OPTIONS, defaultValue: 'zh-CN' }
+  ],
+  qwen: [
+    { key: 'language', label: '语言', type: 'select', options: [{ value: 'auto', label: 'auto 自动检测' }, ...LANGUAGE_OPTIONS], defaultValue: 'zh-CN' },
+    { key: 'enableVad', label: 'Server VAD 自动断句', type: 'boolean', defaultValue: true }
+  ],
+  mock: [
+    { key: 'language', label: '语言', type: 'select', options: LANGUAGE_OPTIONS, defaultValue: 'zh-CN' }
+  ]
+}
+const state = {
+  catalog: null,
+  provider: '',
+  abort: null,
+  stopRecording: null,
+  socket: null,
+  socketioPort: 4000,
+  pathPrefix: '',
+  sessionId: '',
+  deviceSN: 'stt-test-ui',
+  recording: false,
+  media: null,
+  audioCtx: null,
+  processor: null,
+  sourceNode: null,
+  pcmChunks: [],
+  objectUrl: '',
+  uploadBytes: null,
+  uploadName: '',
+  uploadFormat: 'wav'
+}
+
+function randomUUID() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  const bytes = new Uint8Array(16)
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes)
+  } else {
+    for (let i = 0; i < 16; i++) bytes[i] = Math.random() * 256 | 0
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
+function log(msg, type = '') {
+  const line = document.createElement('div')
+  if (type) line.className = type
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`
+  $('log').appendChild(line)
+  $('log').scrollTop = $('log').scrollHeight
+}
+
+function setHealth(ok, text) {
+  $('healthDot').className = `dot ${ok ? 'ok' : 'err'}`
+  $('healthText').textContent = text
+}
+
+function currentProvider() {
+  return (state.catalog?.providers || []).find(p => p.id === state.provider)
+}
+
+function renderProviders() {
+  $('providers').innerHTML = (state.catalog?.providers || []).map(p => {
+    const active = p.id === state.provider ? ' active' : ''
+    const badge = p.configured
+      ? '<span class="badge on">已配置</span>'
+      : '<span class="badge off">未配置</span>'
+    const caps = [p.stream ? '流式' : '', p.http ? 'HTTP' : '', p.file ? '文件' : ''].filter(Boolean).join(' / ')
+    return `<button class="provider${active}" data-id="${p.id}">
+      <b>${p.name}${badge}</b>
+      <span>${p.id} · ${caps} · ${p.format} @ ${p.sampleRate}Hz</span>
+    </button>`
+  }).join('')
+  $('providers').querySelectorAll('.provider').forEach(btn => {
+    btn.onclick = () => selectProvider(btn.dataset.id)
+  })
+}
+
+function selectProvider(id) {
+  state.provider = id
+  const p = currentProvider()
+  $('providerName').textContent = p?.name || id
+  $('providerMeta').textContent = p
+    ? `${p.id} · ${p.format} @ ${p.sampleRate}Hz · ${p.configured ? '密钥已配置' : '密钥未配置'}`
+    : ''
+  const fileOpt = $('mode').querySelector('option[value="file"]')
+  if (fileOpt) fileOpt.disabled = !p?.file
+  if (!p?.file && $('mode').value === 'file') $('mode').value = 'stream'
+  renderProviders()
+  renderProviderParams(p)
+  syncSourceUi()
+  log(`切换提供商 ${p?.name || id}`)
+}
+
+function renderProviderParams(provider) {
+  const params = PROVIDER_PARAMS[provider?.id] || provider?.params || []
+  const langParam = params.find(f => f.key === 'language')
+  const extras = params.filter(f => f.key !== 'language')
+  const language = $('language')
+  language.innerHTML = (langParam?.options || [
+    { value: 'zh-CN', label: 'zh-CN 中文' },
+    { value: 'en-US', label: 'en-US English' },
+    { value: 'ja-JP', label: 'ja-JP 日本語' }
+  ]).map(o => `<option value="${o.value}">${o.label}</option>`).join('')
+  language.value = langParam?.defaultValue || 'zh-CN'
+  $('providerParams').innerHTML = extras.map(field => {
+    if (field.type === 'boolean') {
+      const checked = field.defaultValue !== false ? ' checked' : ''
+      return `<label class="check"><input type="checkbox" data-param="${field.key}"${checked} /> ${field.label}</label>`
+    }
+    const options = (field.options || []).map(o =>
+      `<option value="${o.value}"${o.value === field.defaultValue ? ' selected' : ''}>${o.label}</option>`
+    ).join('')
+    return `<div class="field"><label>${field.label}</label><select data-param="${field.key}">${options}</select></div>`
+  }).join('')
+}
+
+function collectStreamOptions() {
+  const options = {}
+  $('providerParams').querySelectorAll('[data-param]').forEach(el => {
+    const key = el.dataset.param
+    options[key] = el.type === 'checkbox' ? el.checked : el.value
+  })
+  return options
+}
+
+function deviceSN() {
+  return $('deviceSN').value.trim() || 'stt-test-ui'
+}
+
+function syncSourceUi() {
+  const mode = $('mode').value
+  const source = $('source').value
+  $('uploadField').classList.toggle('hidden', source !== 'upload' && mode !== 'file')
+  $('urlField').classList.toggle('hidden', mode !== 'file')
+  if (mode === 'file') {
+    $('fileHint').textContent = '火山引擎文件识别：上传音频（转 base64）或填 URL。'
+  } else if (mode === 'oneshot') {
+    $('fileHint').textContent = 'HTTP 一次性识别只接受完整 WAV（含文件头）。麦克风会自动封装。'
+  } else {
+    $('fileHint').textContent = `文件切片流式：选择本地 WAV/PCM，每 ${FRAME_MS}ms（${FRAME_BYTES} 字节）推一次。`
+  }
+}
+
+function resetStats() {
+  ;['statFirst', 'statTotal', 'statSize'].forEach(id => $(id).textContent = '—')
+}
+
+function setBusy(busy) {
+  $('startBtn').disabled = busy
+  $('stopBtn').disabled = !busy
+  state.recording = busy
+  if (busy) $('healthDot').classList.add('rec')
+  else $('healthDot').classList.remove('rec')
+}
+
+function setTranscript(finalText, partial) {
+  $('finalText').textContent = finalText || '等待识别…'
+  $('partialText').textContent = partial || ''
+}
+
+function attachReplay(blob) {
+  if (state.objectUrl) URL.revokeObjectURL(state.objectUrl)
+  state.objectUrl = URL.createObjectURL(blob)
+  $('player').src = state.objectUrl
+}
+
+function pcmToWav(pcm, sampleRate) {
+  const header = new ArrayBuffer(44)
+  const view = new DataView(header)
+  const write = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)) }
+  write(0, 'RIFF')
+  view.setUint32(4, 36 + pcm.byteLength, true)
+  write(8, 'WAVE')
+  write(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  write(36, 'data')
+  view.setUint32(40, pcm.byteLength, true)
+  return new Blob([header, pcm], { type: 'audio/wav' })
+}
+
+function concatBytes(chunks) {
+  const total = chunks.reduce((n, c) => n + c.length, 0)
+  const out = new Uint8Array(total)
+  let offset = 0
+  for (const chunk of chunks) {
+    out.set(chunk, offset)
+    offset += chunk.length
+  }
+  return out
+}
+
+function floatTo16BitPcm(floats) {
+  const out = new Int16Array(floats.length)
+  for (let i = 0; i < floats.length; i++) {
+    const s = Math.max(-1, Math.min(1, floats[i]))
+    out[i] = s < 0 ? s * 0x8000 : s * 0x7fff
+  }
+  return new Uint8Array(out.buffer)
+}
+
+function resample(floats, fromRate, toRate) {
+  if (fromRate === toRate) return floats
+  const ratio = fromRate / toRate
+  const length = Math.round(floats.length / ratio)
+  const out = new Float32Array(length)
+  for (let i = 0; i < length; i++) {
+    const src = i * ratio
+    const i0 = Math.floor(src)
+    const i1 = Math.min(i0 + 1, floats.length - 1)
+    const t = src - i0
+    out[i] = floats[i0] * (1 - t) + floats[i1] * t
+  }
+  return out
+}
+
+function parseWav(bytes) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  const ascii = (off, n) => String.fromCharCode(...bytes.subarray(off, off + n))
+  if (bytes.length < 44 || ascii(0, 4) !== 'RIFF' || ascii(8, 4) !== 'WAVE') return null
+  let offset = 12
+  let sampleRate = 16000
+  let channels = 1
+  let bits = 16
+  let dataOffset = 44
+  let dataSize = bytes.length - 44
+  while (offset + 8 <= bytes.length) {
+    const id = ascii(offset, 4)
+    const size = view.getUint32(offset + 4, true)
+    if (id === 'fmt ') {
+      channels = view.getUint16(offset + 10, true)
+      sampleRate = view.getUint32(offset + 12, true)
+      bits = view.getUint16(offset + 22, true)
+    } else if (id === 'data') {
+      dataOffset = offset + 8
+      dataSize = size
+      break
+    }
+    offset += 8 + size + (size % 2)
+  }
+  return { pcm: bytes.subarray(dataOffset, dataOffset + dataSize), sampleRate, channels, bits }
+}
+
+function toMono16k(pcm, sampleRate, channels, bits) {
+  if (bits !== 16) throw new Error(`仅支持 16-bit PCM，当前 ${bits}bit`)
+  const samples = new Int16Array(pcm.buffer, pcm.byteOffset, Math.floor(pcm.byteLength / 2))
+  let mono
+  if (channels === 1) {
+    mono = samples
+  } else {
+    const frames = Math.floor(samples.length / channels)
+    mono = new Int16Array(frames)
+    for (let i = 0; i < frames; i++) {
+      let sum = 0
+      for (let c = 0; c < channels; c++) sum += samples[i * channels + c]
+      mono[i] = sum / channels
+    }
+  }
+  if (sampleRate === SAMPLE_RATE) return new Uint8Array(mono.buffer, mono.byteOffset, mono.byteLength)
+  const floats = new Float32Array(mono.length)
+  for (let i = 0; i < mono.length; i++) floats[i] = mono[i] / 32768
+  return floatTo16BitPcm(resample(floats, sampleRate, SAMPLE_RATE))
+}
+
+function bytesToBase64(bytes) {
+  let binary = ''
+  const chunk = 0x8000
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk))
+  }
+  return btoa(binary)
+}
+
+function socketUrl() {
+  const protocol = location.protocol === 'https:' ? 'https:' : 'http:'
+  const port = parseInt($('socketPort').value, 10) || state.socketioPort
+  state.socketioPort = port
+  return `${protocol}//${location.hostname}:${port}`
+}
+
+function waitEvent(socket, event, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      cleanup()
+      reject(new Error(`${event} 超时 ${timeoutMs}ms`))
+    }, timeoutMs)
+    const cleanup = () => {
+      clearTimeout(timer)
+      socket.off(event, onOk)
+      socket.off('stt:error', onErr)
+    }
+    const onOk = res => { cleanup(); resolve(res) }
+    const onErr = res => { cleanup(); reject(new Error(res.error || 'stt:error')) }
+    socket.once(event, onOk)
+    socket.once('stt:error', onErr)
+  })
+}
+
+function endSocketSession(socket, sessionId, timeoutMs = 5000) {
+  if (!socket?.connected || !sessionId) return Promise.resolve()
+  const settled = waitEvent(socket, 'stt:ended', timeoutMs).catch(() => null)
+  socket.emit('stt:end', { deviceSN: deviceSN(), sessionId, end: true })
+  return settled
+}
+
+function ensureSocket() {
+  if (typeof io !== 'function') throw new Error('Socket.IO 客户端未加载')
+  if (state.socket?.connected) return Promise.resolve(state.socket)
+  // 重连后服务端按新 socketId 建会话，本地残留 sessionId 已失效
+  state.sessionId = ''
+  if (state.socket) {
+    state.socket.removeAllListeners()
+    state.socket.disconnect()
+    state.socket = null
+  }
+  return new Promise((resolve, reject) => {
+    const path = `${state.pathPrefix || ''}/socket.io`
+    log(`连接 Socket.IO ${socketUrl()} path=${path}`)
+    const socket = io(socketUrl(), {
+      transports: ['websocket'],
+      path,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      timeout: 10000
+    })
+    socket.on('connect', () => {
+      log(`Socket.IO 已连接 id=${socket.id}`, 'ok')
+      resolve(socket)
+    })
+    socket.on('connect_error', err => {
+      log(`Socket.IO 连接失败: ${err.message}`, 'err')
+      reject(err)
+    })
+    socket.on('disconnect', reason => {
+      log(`Socket.IO 断开: ${reason}`)
+    })
+    state.socket = socket
+  })
+}
+
+function waitUntilStopped() {
+  return new Promise(resolve => {
+    if (state.abort?.signal.aborted) {
+      resolve()
+      return
+    }
+    state.stopRecording = resolve
+    state.abort?.signal.addEventListener('abort', () => resolve(), { once: true })
+  })
+}
+
+function sendPcm(socket, sessionId, bytes) {
+  const data = new Array(bytes.length)
+  for (let i = 0; i < bytes.length; i++) data[i] = bytes[i]
+  socket.emit('stt:audio', {
+    deviceSN: deviceSN(),
+    sessionId,
+    format: 'pcm',
+    audio: [{ type: 'Buffer', data }]
+  })
+}
+
+function createFramePusher(onFrame) {
+  let pending = new Uint8Array(0)
+  const push = bytes => {
+    const merged = new Uint8Array(pending.length + bytes.length)
+    merged.set(pending, 0)
+    merged.set(bytes, pending.length)
+    let offset = 0
+    while (offset + FRAME_BYTES <= merged.length) {
+      onFrame(merged.subarray(offset, offset + FRAME_BYTES))
+      offset += FRAME_BYTES
+    }
+    pending = merged.subarray(offset)
+  }
+  const flush = () => {
+    if (pending.length) {
+      onFrame(pending)
+      pending = new Uint8Array(0)
+    }
+  }
+  return { push, flush }
+}
+
+function armAudioContext() {
+  if (!state.audioCtx) state.audioCtx = new AudioContext()
+  return state.audioCtx.resume().catch(() => {})
+}
+
+function setMicLevel(floats) {
+  let peak = 0
+  for (let i = 0; i < floats.length; i++) peak = Math.max(peak, Math.abs(floats[i]))
+  $('micLevel').style.width = Math.min(100, Math.round(peak * 140)) + '%'
+}
+
+async function startMic(onPcm) {
+  const ctx = state.audioCtx || new AudioContext()
+  state.audioCtx = ctx
+  if (ctx.state === 'suspended') await ctx.resume()
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: {
+      channelCount: 1,
+      echoCancellation: $('echoCancel').checked,
+      noiseSuppression: $('noiseSuppress').checked
+    }
+  })
+  if (ctx.state === 'suspended') await ctx.resume()
+  const source = ctx.createMediaStreamSource(stream)
+  const processor = ctx.createScriptProcessor(4096, 1, 1)
+  processor.onaudioprocess = ev => {
+    if (!state.recording) return
+    const input = ev.inputBuffer.getChannelData(0)
+    setMicLevel(input)
+    const resampled = resample(input, ctx.sampleRate, SAMPLE_RATE)
+    const pcm = floatTo16BitPcm(resampled)
+    state.pcmChunks.push(pcm)
+    onPcm(pcm)
+  }
+  const mute = ctx.createGain()
+  mute.gain.value = 0
+  source.connect(processor)
+  processor.connect(mute)
+  mute.connect(ctx.destination)
+  state.media = stream
+  state.sourceNode = source
+  state.processor = processor
+  log(`麦克风已打开，采集 ${ctx.sampleRate}Hz → ${SAMPLE_RATE}Hz PCM，AudioContext=${ctx.state}`)
+}
+
+function stopMic() {
+  if (state.processor) {
+    state.processor.disconnect()
+    state.processor.onaudioprocess = null
+  }
+  if (state.sourceNode) state.sourceNode.disconnect()
+  if (state.audioCtx) state.audioCtx.close().catch(() => {})
+  if (state.media) state.media.getTracks().forEach(t => t.stop())
+  state.processor = null
+  state.sourceNode = null
+  state.audioCtx = null
+  state.media = null
+  $('micLevel').style.width = '0'
+}
+
+async function loadUploadPcm() {
+  if (!state.uploadBytes) throw new Error('请先选择音频文件')
+  const name = state.uploadName.toLowerCase()
+  if (name.endsWith('.wav') || (state.uploadBytes.length >= 12 && String.fromCharCode(...state.uploadBytes.subarray(0, 4)) === 'RIFF')) {
+    const wav = parseWav(state.uploadBytes)
+    if (!wav) throw new Error('WAV 解析失败')
+    log(`解析 WAV ${wav.sampleRate}Hz ${wav.channels}ch ${wav.bits}bit`)
+    return toMono16k(wav.pcm, wav.sampleRate, wav.channels, wav.bits)
+  }
+  if (name.endsWith('.pcm')) return state.uploadBytes
+  throw new Error('流式上传仅支持 WAV / PCM')
+}
+
+async function runStream() {
+  const started = performance.now()
+  const source = $('source').value
+  let uploadPcm = null
+  if (source !== 'mic') uploadPcm = await loadUploadPcm()
+
+  const socket = await ensureSocket()
+  if (state.sessionId) {
+    log(`上一会话未结束，先关闭 ${state.sessionId}`)
+    await endSocketSession(socket, state.sessionId)
+    state.sessionId = ''
+  }
+
+  const sessionId = randomUUID()
+  state.sessionId = sessionId
+  state.pcmChunks = []
+  let first = 0
+  let chunks = 0
+  let bytes = 0
+  let latest = ''
+  let sessionStarted = false
+  let cleanupListeners = () => {}
+
+  try {
+    const options = collectStreamOptions()
+    const language = $('language').value
+    log(`Socket.IO 会话 start session=${sessionId} provider=${state.provider} language=${language}`)
+    const startedRes = waitEvent(socket, 'stt:started', 20000)
+    socket.emit('stt:start', {
+      deviceSN: deviceSN(),
+      sessionId,
+      format: 'pcm',
+      provider: state.provider,
+      language,
+      options
+    })
+    const startOk = await startedRes
+    if (!startOk.success) throw new Error(startOk.error || 'stt:start 失败')
+    sessionStarted = true
+    log(`上游已启动 provider=${startOk.provider || state.provider}`, 'ok')
+
+    const finished = new Promise((resolve, reject) => {
+      const onData = res => {
+        if (res.sessionId && res.sessionId !== sessionId) return
+        latest = res.text || ''
+        setTranscript(latest, '识别中…')
+        if (!first) {
+          first = performance.now()
+          $('statFirst').textContent = Math.round(first - started) + ' ms'
+          log(`首字延迟 ${Math.round(first - started)}ms：${latest}`, 'ok')
+        }
+      }
+      const cleanup = () => {
+        socket.off('stt:data', onData)
+        socket.off('stt:ended', onEnd)
+        socket.off('stt:error', onErr)
+      }
+      const onEnd = res => {
+        if (res.sessionId && res.sessionId !== sessionId) return
+        cleanup()
+        if (res.success === false) reject(new Error(res.error || 'stt:ended 失败'))
+        else resolve(res)
+      }
+      const onErr = res => {
+        if (res.sessionId && res.sessionId !== sessionId) return
+        cleanup()
+        reject(new Error(res.error || 'stt:error'))
+      }
+      cleanupListeners = cleanup
+      socket.on('stt:data', onData)
+      socket.on('stt:ended', onEnd)
+      socket.on('stt:error', onErr)
+    })
+
+    const emitFrame = pcm => {
+      chunks += 1
+      bytes += pcm.length
+      $('statSize').textContent = `${chunks} / ${bytes} B`
+      sendPcm(socket, sessionId, pcm)
+    }
+    const frames = createFramePusher(emitFrame)
+
+    if (source === 'mic') {
+      log(`麦克风按 ${FRAME_MS}ms / ${FRAME_BYTES}B 推流`)
+      await startMic(pcm => frames.push(pcm))
+      await waitUntilStopped()
+      stopMic()
+      frames.flush()
+    } else {
+      attachReplay(pcmToWav(uploadPcm, SAMPLE_RATE))
+      log(`文件切片按 ${FRAME_MS}ms / ${FRAME_BYTES}B 推流，共 ${uploadPcm.length} B`)
+      for (let i = 0; i < uploadPcm.length && !state.abort.signal.aborted; i += FRAME_BYTES) {
+        const slice = uploadPcm.subarray(i, Math.min(i + FRAME_BYTES, uploadPcm.length))
+        emitFrame(slice)
+        await new Promise(r => setTimeout(r, FRAME_MS))
+      }
+    }
+
+    if (state.pcmChunks.length) attachReplay(pcmToWav(concatBytes(state.pcmChunks), SAMPLE_RATE))
+
+    socket.emit('stt:end', { deviceSN: deviceSN(), sessionId, end: true })
+    const end = await finished
+    const text = end?.text || latest
+    setTranscript(text || '(空结果)')
+    $('statTotal').textContent = Math.round(performance.now() - started) + ' ms'
+    log(`识别结束：${text || '(空)'}`, 'ok')
+    state.sessionId = ''
+  } catch (err) {
+    if (sessionStarted) {
+      await endSocketSession(socket, sessionId).catch(() => {})
+      state.sessionId = ''
+    }
+    throw err
+  } finally {
+    cleanupListeners()
+  }
+}
+
+async function runOneshot() {
+  const started = performance.now()
+  let wavBytes
+  if ($('source').value === 'mic') {
+    state.pcmChunks = []
+    await startMic(() => {
+      $('statSize').textContent = `${state.pcmChunks.length} / ${state.pcmChunks.reduce((n, c) => n + c.length, 0)} B`
+    })
+    await waitUntilStopped()
+    stopMic()
+    const pcm = concatBytes(state.pcmChunks)
+    if (!pcm.length) throw new Error('没有采集到音频')
+    const blob = pcmToWav(pcm, SAMPLE_RATE)
+    attachReplay(blob)
+    wavBytes = new Uint8Array(await blob.arrayBuffer())
+  } else {
+    if (!state.uploadBytes) throw new Error('请先选择 WAV 文件')
+    const wav = parseWav(state.uploadBytes)
+    if (!wav) throw new Error('仅支持 WAV 文件')
+    wavBytes = state.uploadBytes
+    attachReplay(new Blob([wavBytes], { type: 'audio/wav' }))
+  }
+
+  const qs = new URLSearchParams({
+    language: $('language').value,
+    provider: state.provider
+  })
+  log(`POST /stt/recognize?${qs} size=${wavBytes.length}`)
+  const res = await fetch(`/stt/recognize?${qs}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/octet-stream' },
+    body: wavBytes,
+    signal: state.abort.signal
+  })
+  const json = await res.json()
+  if (!res.ok || json.code !== 200) throw new Error(json.msg || `HTTP ${res.status}`)
+  setTranscript(json.data.text || '(空结果)')
+  $('statFirst').textContent = Math.round(performance.now() - started) + ' ms'
+  $('statTotal').textContent = Math.round(performance.now() - started) + ' ms'
+  $('statSize').textContent = `1 / ${wavBytes.length} B`
+  log(`一次性识别完成 trace=${json.data.traceId}：${json.data.text || '(空)'}`, 'ok')
+}
+
+async function runFile() {
+  const started = performance.now()
+  const url = $('fileUrl').value.trim()
+  const body = { language: $('language').value, audioFormat: 'wav' }
+  if (url) {
+    body.url = url
+    log(`POST /stt/file/recognize url=${url}`)
+  } else {
+    if (!state.uploadBytes) throw new Error('请上传音频或填写 URL')
+    body.audioData = bytesToBase64(state.uploadBytes)
+    const name = state.uploadName.toLowerCase()
+    if (name.endsWith('.mp3')) body.audioFormat = 'mp3'
+    else if (name.endsWith('.pcm')) body.audioFormat = 'pcm'
+    attachReplay(new Blob([state.uploadBytes], { type: name.endsWith('.wav') ? 'audio/wav' : 'application/octet-stream' }))
+    log(`POST /stt/file/recognize format=${body.audioFormat} size=${state.uploadBytes.length}`)
+  }
+  const res = await fetch('/stt/file/recognize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: state.abort.signal
+  })
+  const json = await res.json()
+  if (!res.ok || json.code !== 200) throw new Error(json.msg || `HTTP ${res.status}`)
+  setTranscript(json.data.text || '(空结果)')
+  $('statFirst').textContent = Math.round(performance.now() - started) + ' ms'
+  $('statTotal').textContent = Math.round(performance.now() - started) + ' ms'
+  log(`文件同步识别完成 requestId=${json.data.taskId}：${json.data.text || '(空)'}`, 'ok')
+}
+
+async function startRecognize() {
+  if (!state.provider) { log('请选择提供商', 'err'); return }
+  const mode = $('mode').value
+  const source = $('source').value
+  if (source === 'upload' && (mode === 'stream' || mode === 'oneshot') && !state.uploadBytes) {
+    log(mode === 'oneshot' ? '请先选择 WAV 文件' : '请先选择音频文件', 'err')
+    return
+  }
+  // 必须在 click 同步阶段创建 AudioContext，否则连完 Socket 后再采集会被浏览器挂起
+  if (source === 'mic' && (mode === 'stream' || mode === 'oneshot')) {
+    armAudioContext()
+  }
+  state.abort = new AbortController()
+  resetStats()
+  setTranscript('识别中…')
+  setBusy(true)
+  $('statFormat').textContent = `${currentProvider()?.format || 'pcm'} @ ${SAMPLE_RATE}Hz`
+  log(`开始 ${mode} provider=${state.provider} source=${source}`)
+  try {
+    if (mode === 'oneshot') await runOneshot()
+    else if (mode === 'file') await runFile()
+    else await runStream()
+  } catch (err) {
+    if (err.name === 'AbortError') log('已停止')
+    else {
+      log(err.message || String(err), 'err')
+      setTranscript(err.message || String(err))
+    }
+  } finally {
+    stopMic()
+    setBusy(false)
+    state.abort = null
+  }
+}
+
+function stopRecognize() {
+  if (state.abort) state.abort.abort()
+  stopMic()
+}
+
+function clearResult() {
+  setTranscript('等待识别…')
+  resetStats()
+  $('log').innerHTML = ''
+  if (state.objectUrl) {
+    URL.revokeObjectURL(state.objectUrl)
+    state.objectUrl = ''
+    $('player').removeAttribute('src')
+  }
+}
+
+async function onFileChange() {
+  const file = $('fileInput').files[0]
+  if (!file) {
+    state.uploadBytes = null
+    state.uploadName = ''
+    return
+  }
+  const buf = new Uint8Array(await file.arrayBuffer())
+  state.uploadBytes = buf
+  state.uploadName = file.name
+  log(`已选择文件 ${file.name} (${buf.length} B)`)
+  if (file.name.toLowerCase().endsWith('.wav') || file.type.startsWith('audio/')) {
+    attachReplay(new Blob([buf], { type: file.type || 'audio/wav' }))
+  }
+}
+
+async function boot() {
+  $('startBtn').onclick = startRecognize
+  $('stopBtn').onclick = stopRecognize
+  $('clearBtn').onclick = clearResult
+  $('clearFileBtn').onclick = () => {
+    $('fileInput').value = ''
+    state.uploadBytes = null
+    state.uploadName = ''
+    log('已清除本地文件')
+  }
+  $('fileInput').onchange = onFileChange
+  $('mode').onchange = syncSourceUi
+  $('source').onchange = syncSourceUi
+  $('socketPort').onchange = () => {
+    const port = parseInt($('socketPort').value, 10)
+    if (!port || port === state.socketioPort) return
+    state.socketioPort = port
+    if (state.socket) {
+      state.socket.removeAllListeners()
+      state.socket.disconnect()
+      state.socket = null
+    }
+    log(`Socket.IO 端口改为 ${port}，下次开始识别时重连`)
+  }
+  syncSourceUi()
+  try {
+    const [healthRes, providersRes] = await Promise.all([
+      fetch('/health'),
+      fetch('/stt/providers')
+    ])
+    const health = await healthRes.json()
+    const providers = await providersRes.json()
+    if (providers.code !== 200) throw new Error(providers.msg || '提供商目录加载失败')
+    state.catalog = providers.data
+    const cfg = health.data?.config || {}
+    state.socketioPort = providers.data.socketioPort || cfg.socketioPort || 4000
+    state.pathPrefix = providers.data.pathPrefix || cfg.pathPrefix || ''
+    $('socketPort').value = String(state.socketioPort)
+    setHealth(true, `${cfg.sttServiceType || providers.data.current} · HTTP :${location.port || 4001} / Socket.IO :${state.socketioPort}`)
+    selectProvider(providers.data.current || providers.data.providers[0]?.id)
+    log(`服务就绪，环境默认提供商 ${providers.data.current}。流式端口 ${state.socketioPort}`)
+  } catch (err) {
+    setHealth(false, '无法连接 coco-stt，请先启动服务')
+    log(err.message || String(err), 'err')
+  }
+}
+
+boot()
+</script>
+</body>
+</html>

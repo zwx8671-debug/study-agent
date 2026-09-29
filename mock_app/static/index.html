@@ -1,0 +1,3498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mock_app · 纯前端 Trigger 验证</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --user: #2563eb;
+      --assistant: #1e293b;
+      --accent: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --trigger: #7c3aed;
+      --clarify: #0ea5e9;
+      --prompt: #14b8a6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 20px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    header .btn-conversation {
+      background: var(--prompt);
+      color: #082f2a;
+      border: 1px solid var(--prompt);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    header .btn-conversation:hover {
+      filter: brightness(1.08);
+    }
+    .header-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .action-group.device {
+      margin-left: 4px;
+      padding-left: 14px;
+      border-left: 1px solid var(--border);
+    }
+    .action-group .group-label {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .header-actions button {
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .header-actions button:hover,
+    .header-actions a.header-nav:hover { border-color: var(--prompt); color: #5eead4; }
+    .header-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .header-actions a.header-nav {
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid rgba(45, 212, 191, 0.45);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .action-group.device button {
+      border-color: rgba(45, 212, 191, 0.35);
+    }
+    .action-group.device button:hover {
+      border-color: var(--prompt);
+      color: #5eead4;
+      background: rgba(45, 212, 191, 0.08);
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+    .dot.on { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .meta {
+      width: 100%;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    .modal-mask {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-mask.open { display: flex; }
+    .modal {
+      width: min(960px, 100%);
+      max-height: 90vh;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: 15px;
+      flex: 1;
+    }
+    .modal-header .url {
+      font-size: 11px;
+      color: var(--muted);
+      max-width: 45%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .modal-header button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .modal-body.md-view h1 { font-size: 1.5em; margin: 0.6em 0 0.4em; border-bottom: 1px solid var(--border); padding-bottom: 0.25em; }
+    .modal-body.md-view h2 { font-size: 1.25em; margin: 0.8em 0 0.4em; color: #5eead4; }
+    .modal-body.md-view h3 { font-size: 1.1em; margin: 0.7em 0 0.3em; }
+    .modal-body.md-view p { margin: 0.5em 0; }
+    .modal-body.md-view ul, .modal-body.md-view ol { padding-left: 1.4em; margin: 0.4em 0; }
+    .modal-body.md-view code {
+      background: #0b1220;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      font-family: Consolas, "Courier New", monospace;
+    }
+    .modal-body.md-view pre {
+      background: #0b1220;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    .modal-body.md-view pre code { padding: 0; background: transparent; }
+    .modal-body.raw-view {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: #a5f3fc;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px;
+    }
+    .form-grid label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .form-grid label.span-2 { grid-column: 1 / -1; }
+    .form-grid input,
+    .form-grid select {
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    .form-grid input:focus,
+    .form-grid select:focus { border-color: var(--prompt); }
+    .token-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .token-row input { flex: 1; min-width: 0; }
+    .token-row button {
+      flex-shrink: 0;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .token-row button:hover { border-color: var(--prompt); color: #5eead4; }
+    .token-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .field-hint {
+      font-size: 11px;
+      color: var(--muted);
+      min-height: 14px;
+    }
+    .field-hint.ok { color: #86efac; }
+    .field-hint.error { color: #fca5a5; }
+    .combo { position: relative; }
+    .combo input { width: 100%; padding-right: 32px; }
+    .combo-toggle {
+      position: absolute;
+      right: 1px;
+      top: 1px;
+      bottom: 1px;
+      width: 28px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .combo-toggle:hover { color: var(--text); }
+    .combo-list {
+      position: absolute;
+      z-index: 8;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      margin: 0;
+      padding: 4px 0;
+      list-style: none;
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .combo-list[hidden] { display: none; }
+    .combo-list li {
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .combo-list li:hover { background: #1a2332; color: #5eead4; }
+    .config-hint {
+      padding: 0 16px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .bubble {
+      max-width: 820px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 14px;
+    }
+    .bubble.user { align-self: flex-end; background: var(--user); }
+    .bubble.assistant {
+      align-self: flex-start;
+      background: var(--assistant);
+      border: 1px solid var(--border);
+    }
+    .bubble.system {
+      align-self: center;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      border: 1px dashed var(--border);
+      max-width: 90%;
+    }
+    .bubble.error {
+      align-self: center;
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid var(--danger);
+      font-size: 13px;
+    }
+    .bubble .label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .trace-line {
+      align-self: flex-end;
+      margin-top: -8px;
+      font-size: 11px;
+      color: #5eead4;
+      word-break: break-all;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .trace-line:hover { text-decoration: underline; }
+    .bubble.system a.trace-file {
+      color: #5eead4;
+      text-decoration: none;
+    }
+    .bubble.system a.trace-file:hover { text-decoration: underline; }
+    .turn-metrics {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      white-space: normal;
+      font-variant-numeric: tabular-nums;
+    }
+    .pcm-player {
+      align-self: flex-start;
+      max-width: 820px;
+      margin-top: -4px;
+      background: #121a24;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .pcm-player:hover { border-color: var(--prompt); color: #5eead4; }
+    .pcm-player.playing { border-color: var(--accent); color: #86efac; }
+
+    .card {
+      align-self: stretch;
+      max-width: 820px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .card.clarify { border-left: 4px solid var(--clarify); }
+    .card.trigger { border-left: 4px solid var(--trigger); }
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.clarify { background: rgba(14, 165, 233, 0.2); color: #7dd3fc; }
+    .badge.trigger { background: rgba(124, 58, 237, 0.2); color: #c4b5fd; }
+    .q-block { margin-bottom: 12px; }
+    .q-block .q-text { margin-bottom: 8px; font-size: 14px; }
+    .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .opts button {
+      background: #0f172a;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .opts button:hover { border-color: var(--clarify); color: #7dd3fc; }
+    .opts button.selected {
+      border-color: var(--clarify);
+      background: rgba(14, 165, 233, 0.2);
+      color: #7dd3fc;
+    }
+    .opts button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .q-custom {
+      margin-top: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    .q-custom:focus { border-color: var(--clarify); }
+    .clarify-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .clarify-actions .btn-confirm {
+      background: var(--clarify);
+      color: #0b1220;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .clarify-actions .btn-cancel {
+      background: transparent;
+      color: #fca5a5;
+      border: 1px solid var(--danger);
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .clarify-actions .btn-cancel:hover { background: rgba(239, 68, 68, 0.12); }
+    .clarify-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .answered {
+      color: var(--accent);
+      font-size: 13px;
+      margin-top: 8px;
+      white-space: pre-wrap;
+    }
+    .countdown { font-size: 12px; color: var(--warn); margin-left: auto; }
+    pre.xml {
+      margin: 0;
+      padding: 12px;
+      background: #0b1220;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #c4b5fd;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .edit-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #0b1220;
+      font-size: 13px;
+    }
+    .edit-toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+    }
+    .edit-toolbar select,
+    .edit-toolbar input[type="number"] {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 13px;
+    }
+    .edit-toolbar .path {
+      flex: 1;
+      min-width: 150px;
+      font-size: 11px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .edit-toolbar button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .edit-toolbar button.primary {
+      background: var(--prompt);
+      color: #0b1220;
+      border-color: var(--prompt);
+      font-weight: 600;
+    }
+    .edit-toolbar button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #localCacheEditor,
+    #devicePromptEditor,
+    #deviceStateEditor {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      flex: 1;
+      box-sizing: border-box;
+      border: none;
+      resize: none;
+      background: #0b1220;
+      color: #e2e8f0;
+      padding: 16px 20px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      outline: none;
+    }
+    #localCacheEditor {
+      min-height: 420px;
+    }
+    .device-prompt-body,
+    .device-state-body {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+    .device-prompt-keys,
+    .device-state-keys {
+      width: 260px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      background: #0b1220;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .device-prompt-keys button,
+    .device-state-keys button {
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1.35;
+      word-break: break-all;
+    }
+    .device-prompt-keys button:hover,
+    .device-state-keys button:hover {
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .device-prompt-keys button.active,
+    .device-state-keys button.active {
+      border-color: var(--prompt);
+      background: rgba(45, 212, 191, 0.12);
+      color: #5eead4;
+    }
+    .device-prompt-keys .empty,
+    .device-state-keys .empty {
+      color: var(--muted);
+      font-size: 12px;
+      padding: 12px 8px;
+    }
+    .device-prompt-main,
+    .device-state-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .device-prompt-meta,
+    .device-state-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      background: #0b1220;
+    }
+    .device-prompt-meta label,
+    .device-state-meta label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .device-prompt-meta input,
+    .device-prompt-meta select,
+    .device-state-meta input,
+    .device-state-meta select {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      outline: none;
+    }
+    .device-prompt-meta .key-full,
+    .device-state-meta .key-full {
+      flex: 1;
+      min-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: Consolas, "Courier New", monospace;
+      color: var(--text);
+    }
+    .edit-hint {
+      padding: 6px 16px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      white-space: pre-wrap;
+    }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+    }
+    footer input {
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+    footer #input { flex: 1 1 220px; min-width: 160px; }
+    footer input:focus { border-color: var(--user); }
+    .dialog-id-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 1 280px;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .dialog-id-wrap input {
+      flex: 1;
+      min-width: 140px;
+      font-size: 12px;
+      padding: 10px 10px;
+    }
+    #btnNewDialog {
+      background: #0b1220;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+    #btnNewDialog:hover { border-color: var(--prompt); color: #5eead4; }
+    footer button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #btnSend { background: var(--user); color: #fff; }
+    #btnBenchmark { background: var(--prompt); color: #082f2a; }
+    #btnBenchmarkStop { background: var(--danger); color: #fff; }
+    #btnBenchmarkExport { background: #334155; color: #fff; }
+    #btnDone { background: var(--warn); color: #111; }
+    #btnAppAudio { background: var(--accent); color: #08261a; }
+    #btnAppAudio.off { background: #334155; color: var(--muted); }
+    #btnHoldTalk {
+      background: #1e3a5f;
+      color: #dbeafe;
+      min-width: 108px;
+    }
+    #btnHoldTalk.recording {
+      background: var(--danger);
+      color: #fff;
+      animation: hold-pulse 1s ease-in-out infinite;
+    }
+    #btnUploadWav, #btnSampleWav {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    #btnUploadWav.busy, #btnSampleWav.busy {
+      background: #1e3a5f;
+      color: #93c5fd;
+    }
+    @keyframes hold-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+      50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    }
+    .bubble.user.voice .label { color: #bfdbfe; }
+    .bubble.user.pending .body { color: #bfdbfe; font-style: italic; }
+    footer button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .auto-done {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      font-size: 13px;
+      color: var(--muted);
+      user-select: none;
+      cursor: pointer;
+    }
+    .auto-done input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+    .benchmark-panel {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: #0b1220;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .benchmark-panel.open { display: flex; }
+    .benchmark-panel strong { color: #5eead4; }
+    .benchmark-panel progress { width: 180px; height: 10px; accent-color: var(--prompt); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MOCK APP&DEVICE</h1>
+    <div class="header-actions">
+      <div class="action-group">
+        <button id="btnConfig">连接配置</button>
+        <button id="btnReconnect">重连云端</button>
+        <button id="btnPrompt">完整提示词</button>
+        <button id="btnPromptTrigger">完整 Trigger</button>
+        <button id="btnLocalCache">编辑静态提示词</button>
+        <button id="btnBenchmark" type="button">Benchmark CSV</button>
+        <button type="button" onclick="window.open('replay.html', '_blank', 'noopener')">日志回放</button>
+        <input id="benchmarkFile" type="file" accept=".csv,text/csv" style="display:none" />
+        <a class="header-nav" href="conversation.html">对话分析</a>
+      </div>
+      <div class="action-group device">
+        <span class="group-label">设备侧</span>
+        <button id="btnSyncDevicePrompt">编辑设备提示词</button>
+        <button id="btnSyncDeviceState">编辑状态机</button>
+      </div>
+    </div>
+    <div class="status">
+      <span class="dot" id="dot"></span>
+      <span id="statusText">未连接</span>
+    </div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <div id="messages"></div>
+
+  <div class="modal-mask" id="configModal">
+    <div class="modal" style="width:min(900px,96vw);overflow:visible">
+      <div class="modal-header">
+        <h2>连接配置</h2>
+        <button id="btnCloseConfig" type="button">关闭</button>
+      </div>
+      <div class="form-grid">
+        <label>
+          设备 SN（YC0001-YC0010提供测试）
+          <input id="cfgDeviceSn" value="YC0001" />
+        </label>
+        <label>
+          product
+          <div class="combo">
+            <input id="cfgProductId" value="7" autocomplete="off" placeholder="选择或输入 productId" />
+            <button type="button" class="combo-toggle" aria-label="选择 product">▾</button>
+            <ul class="combo-list" hidden>
+              <li data-value="1">cocowa（1）</li>
+              <li data-value="7">cocolamp（7）</li>
+            </ul>
+          </div>
+        </label>
+        <label>
+          云端 Socket.IO 地址
+          <div class="combo">
+            <input id="cfgSockApi" value="http://192.168.10.234:3000" autocomplete="off" placeholder="选择或输入地址" />
+            <button type="button" class="combo-toggle" aria-label="选择 Socket.IO 地址">▾</button>
+            <ul class="combo-list" hidden>
+              <li data-value="http://localhost:3000">http://localhost:3000</li>
+              <li data-value="http://192.168.10.234:3000">http://192.168.10.234:3000</li>
+              <li data-value="http://192.168.10.193:3000">http://192.168.10.193:3000</li>
+              <li data-value="https://cocolamp.stg.leapwatt.com">https://cocolamp.stg.leapwatt.com</li>
+            </ul>
+          </div>
+        </label>
+        <label>
+          云端 HTTP 地址（提示词等）
+          <div class="combo">
+            <input id="cfgHttpApi" value="http://192.168.10.234:8002" autocomplete="off" placeholder="选择或输入地址" />
+            <button type="button" class="combo-toggle" aria-label="选择 HTTP 地址">▾</button>
+            <ul class="combo-list" hidden>
+              <li data-value="http://localhost:8002">http://localhost:8002</li>
+              <li data-value="http://192.168.10.234:8002">http://192.168.10.234:8002</li>
+              <li data-value="http://192.168.10.193:8002">http://192.168.10.193:8002</li>
+              <li data-value="https://cocolamp.stg.leapwatt.com">https://cocolamp.stg.leapwatt.com</li>
+            </ul>
+          </div>
+        </label>
+        <label>
+          testapp 鉴权 HTTP 地址
+          <div class="combo">
+            <input id="cfgTestappHttpApi" value="http://192.168.10.234:48080" autocomplete="off" placeholder="选择或输入地址" />
+            <button type="button" class="combo-toggle" aria-label="选择 testapp 鉴权地址">▾</button>
+            <ul class="combo-list" hidden>
+              <li data-value="http://localhost:48080">http://localhost:48080</li>
+              <li data-value="http://192.168.10.234:48080">http://192.168.10.234:48080</li>
+              <li data-value="http://192.168.10.193:48080">http://192.168.10.193:48080</li>
+              <li data-value="https://cocolamp.stg.leapwatt.com/coco-admin">https://cocolamp.stg.leapwatt.com/coco-admin</li>
+            </ul>
+          </div>
+          <span class="field-hint">仅用于「填入testapp userToken」</span>
+        </label>
+        <label>
+          Trace 请求服务路径
+          <div class="combo">
+            <input id="cfgTraceApi" value="http://127.0.0.1:8912" autocomplete="off" placeholder="选择或输入设备 IP" />
+            <button type="button" class="combo-toggle" aria-label="选择 Trace 服务地址">▾</button>
+            <ul class="combo-list" hidden>
+              <li data-value="http://127.0.0.1:8912">http://127.0.0.1:8912</li>
+              <li data-value="http://192.168.11.23:8912">http://192.168.11.23:8912</li>
+            </ul>
+          </div>
+          <span class="field-hint">一般为设备 IP，用于打开 trace_view</span>
+        </label>
+        <label>
+          API Path
+          <input id="cfgApiPath" value="/coco-cloud-ts" />
+        </label>
+        <label>
+          transports
+          <input id="cfgTransports" value="websocket,polling" />
+        </label>
+        <label>
+          msgPacket
+          <select id="cfgMsgPacket">
+            <option value="BYTE">BYTE（msgpack 二进制）</option>
+            <option value="base64">base64（JSON 解析器）</option>
+          </select>
+        </label>
+        <label class="span-2">
+          AUTH_TOKEN（可选，留空则走设备后门鉴权）
+          <div class="token-row">
+            <input id="cfgAuthToken" value="" />
+            <button id="btnFillTestappToken" type="button">填入testapp userToken</button>
+          </div>
+          <span class="field-hint" id="authTokenHint"></span>
+        </label>
+        <label>
+          默认 provider（可选）
+          <input id="cfgProvider" value="" />
+        </label>
+        <label>
+          默认 model（可选）
+          <div class="combo">
+            <input id="cfgModel" value="" autocomplete="off" placeholder="选择或输入 model" />
+            <button type="button" class="combo-toggle" aria-label="选择 model">▾</button>
+            <ul class="combo-list" hidden>
+              <li data-value="">空</li>
+              <li data-value="qwen3.7-flash">qwen3.7-flash</li>
+              <li data-value="gpt-4.1">gpt-4.1</li>
+            </ul>
+          </div>
+        </label>
+        <label>
+          Mock Routine 正确率（0~100%）
+          <input id="cfgMockRoutineRate" type="number" value="50" min="0" max="100" />
+        </label>
+      </div>
+      <div class="config-hint" id="configHint"></div>
+      <div class="edit-toolbar">
+        <button id="btnSaveConfig" class="primary" type="button">保存并重连</button>
+        <button id="btnResetConfig" type="button">恢复默认</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="promptModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="promptTitle">提示词</h2>
+        <span class="url" id="promptUrl"></span>
+        <button id="btnToggleRaw" type="button">源码</button>
+        <button id="btnClosePrompt" type="button">关闭</button>
+      </div>
+      <div class="modal-body md-view" id="promptBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="localCacheModal">
+    <div class="modal" style="width:min(1100px,96vw);height:min(88vh,900px)">
+      <div class="modal-header">
+        <h2>静态提示词（local-cache）</h2>
+        <span class="url" id="localCacheUrl"></span>
+        <button id="btnCloseLocalCache" type="button">关闭</button>
+      </div>
+      <div class="edit-toolbar">
+        <label>类型
+          <select id="localCacheType">
+            <option value="master">master</option>
+            <option value="trigger">trigger</option>
+          </select>
+        </label>
+        <label>productId
+          <input id="localCacheProductId" type="number" min="1" value="7" style="width:72px" />
+        </label>
+        <button id="btnLoadLocalCache" type="button">加载</button>
+        <button id="btnSaveLocalCache" type="button" class="primary">保存到云端缓存</button>
+        <span class="path" id="localCachePath" title=""></span>
+      </div>
+      <textarea id="localCacheEditor" spellcheck="false" placeholder="点击“加载”拉取云端静态提示词…"></textarea>
+      <div class="edit-hint" id="localCacheHint">优先加载当前 socketId 的内存覆盖；若未设置，则使用云端 /local-cache 回填的系统提示词正文。保存时只写入当前 socketId 的内存覆盖。</div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="devicePromptModal">
+    <div class="modal" style="width:min(1100px,96vw);height:min(88vh,900px)">
+      <div class="modal-header">
+        <h2>设备提示词（device:prompt:sync）</h2>
+        <span class="url" id="devicePromptUrl"></span>
+        <button id="btnCloseDevicePrompt" type="button">关闭</button>
+      </div>
+      <div class="edit-toolbar">
+        <button id="btnLoadDevicePrompt" type="button">加载样本</button>
+        <button id="btnAddDevicePromptKey" type="button">新增 key</button>
+        <button id="btnDelDevicePromptKey" type="button">删除当前</button>
+        <label>同步类型
+          <select id="devicePromptSyncType">
+            <option value="update">update</option>
+            <option value="delete">delete</option>
+          </select>
+        </label>
+        <button id="btnSendDevicePrompt" type="button" class="primary">同步到云端</button>
+        <span class="path" id="devicePromptPath" title=""></span>
+      </div>
+      <div class="device-prompt-body">
+        <div class="device-prompt-keys" id="devicePromptKeys"></div>
+        <div class="device-prompt-main">
+          <div class="device-prompt-meta">
+            <span class="key-full" id="devicePromptActiveKey" title="">未选择 key</span>
+            <label>version
+              <input id="devicePromptVersion" type="text" value="" style="width:72px" />
+            </label>
+          </div>
+          <textarea id="devicePromptEditor" spellcheck="false" placeholder="选择左侧 key 后编辑 prompt 正文…"></textarea>
+        </div>
+      </div>
+      <div class="edit-hint" id="devicePromptHint">
+        按 key 分类编辑 prompt；同步时组装为 { type, data: PromptData[] } 经 device:prompt:sync 写入当前 SN。
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="deviceStateModal">
+    <div class="modal" style="width:min(1100px,96vw);height:min(88vh,900px)">
+      <div class="modal-header">
+        <h2>设备状态机（device:state:sync）</h2>
+        <span class="url" id="deviceStateUrl"></span>
+        <button id="btnCloseDeviceState" type="button">关闭</button>
+      </div>
+      <div class="edit-toolbar">
+        <button id="btnLoadDeviceState" type="button">加载样本</button>
+        <button id="btnAddDeviceState" type="button">新增 name</button>
+        <button id="btnDelDeviceState" type="button">删除当前</button>
+        <label>同步类型
+          <select id="deviceStateSyncType">
+            <option value="update">update</option>
+            <option value="add">add</option>
+            <option value="delete">delete</option>
+          </select>
+        </label>
+        <button id="btnSendDeviceState" type="button" class="primary">同步到云端</button>
+        <span class="path" id="deviceStatePath" title=""></span>
+      </div>
+      <div class="device-state-body">
+        <div class="device-state-keys" id="deviceStateKeys"></div>
+        <div class="device-state-main">
+          <div class="device-state-meta">
+            <span class="key-full" id="deviceStateActiveName" title="">未选择 name</span>
+            <label>type
+              <select id="deviceStateType">
+                <option value="json">json</option>
+                <option value="audio">audio</option>
+                <option value="image">image</option>
+              </select>
+            </label>
+            <label>desc
+              <input id="deviceStateDesc" type="text" value="" style="width:min(320px,40vw)" />
+            </label>
+          </div>
+          <textarea id="deviceStateEditor" spellcheck="false" placeholder="选择左侧 name 后编辑 value…"></textarea>
+        </div>
+      </div>
+      <div class="edit-hint" id="deviceStateHint">
+        按 name 分类编辑状态机；同步时组装为 { type, stateData: StateData[] } 经 device:state:sync 写入当前 SN。
+      </div>
+    </div>
+  </div>
+
+  <div class="benchmark-panel" id="benchmarkPanel">
+    <strong>Benchmark</strong>
+    <span id="benchmarkStatus">Idle</span>
+    <progress id="benchmarkProgress" value="0" max="1"></progress>
+    <button id="btnBenchmarkStop" type="button">Stop</button>
+    <button id="btnBenchmarkExport" type="button">Export CSV</button>
+  </div>
+
+  <footer>
+    <input id="input" type="text" placeholder="输入文字回车发送，或按住空格说话" autocomplete="off" />
+    <label class="dialog-id-wrap" title="历史对话 ID，填写后继续接着聊；留空则新开对话">
+      dialogId
+      <input id="dialogId" type="text" placeholder="可选，续聊" autocomplete="off" />
+    </label>
+    <button id="btnNewDialog" type="button" title="清空 dialogId，开始新对话">新对话</button>
+    <button id="btnSend">发送</button>
+    <button id="btnHoldTalk" type="button" title="按住空格或此按钮说话；16kHz PCM，128ms 切片经 chat 上传">按住说话</button>
+    <button id="btnUploadWav" type="button" title="选择 WAV，按 128ms PCM 切片经 chat 上传">上传 WAV</button>
+    <button id="btnSampleWav" type="button" title="发送样例：请听到叮的声音后，匀速自然朗读：123456789.wav">样例 WAV</button>
+    <input id="wavFile" type="file" accept="audio/wav,.wav" hidden />
+    <button id="btnAppAudio" type="button" title="chat 入参 appEnableAudio：控制云端是否向 APP 下发音频">音频 ON</button>
+    <label class="auto-done" title="assistant 尾包(END)后自动发 done；手动 done 始终可用">
+      <input type="checkbox" id="chkAutoDone" checked />
+      自动 done
+    </label>
+    <button id="btnDone" title="模拟设备执行完成">done</button>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="routine-mock-ack.js"></script>
+  <script src="assistant-audio.js"></script>
+  <script src="voice-ptt.js"></script>
+  <script src="trace-latency.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "uuid": "https://cdn.jsdelivr.net/npm/uuid@13.0.2/+esm"
+    }
+  }
+  </script>
+  <script type="module">
+    import { v7 as uuidv7 } from "uuid";
+
+    const STORAGE_KEY = "mock_app_frontend_config_v1";
+    const FLAG_START = 0;
+    const FLAG_CHUNK = 1;
+    const FLAG_END = 2;
+    const AUDIO_FORMAT_PCM = "pcm";
+    const VOICE_SAMPLE_RATE = 16000;
+    const EVENT_JOIN = "join:response";
+    const EVENT_CHAT = "chat";
+    const EVENT_CHAT_RESPONSE = "chat:response";
+    const EVENT_CHAT_AUDIO_RESPONSE = "chat:audio:response";
+    const EVENT_DONE = "done";
+    const EVENT_TRIGGER_SYNC = "trigger:sync";
+    const EVENT_SERVER_TO_WEB = "relay:server-to-web";
+    const EVENT_ERROR_GLOBAL = "error:global";
+    /** SyncEvent.DEVICE_PROMPT */
+    const EVENT_DEVICE_PROMPT_SYNC = "device:prompt:sync";
+    /** SyncEvent.DEVICE_STATE */
+    const EVENT_DEVICE_STATE_SYNC = "device:state:sync";
+    const SAMPLE_DEVICE_PROMPTS_URL = "sample-device-prompts.json";
+    const SAMPLE_DEVICE_STATES_URL = "sample-device-states.json";
+    const TYPE_CLARIFICATION = "trigger:clarification";
+    const CLARIFICATION_TIMEOUT_SEC = 115;
+    const DEFAULTS = {
+      deviceSn: "YC0001",
+      productId: 7,
+      cloudSockApi: "http://192.168.10.234:3000",
+      cloudHttpApi: "http://192.168.10.234:8002",
+      testappHttpApi: "http://192.168.10.234:48080",
+      traceApi: "http://127.0.0.1:8912",
+      apiPath: "/coco-cloud-ts",
+      authToken: "",
+      defaultProvider: "",
+      defaultModel: "",
+      dialogId: "",
+      transports: "websocket,polling",
+      /** 对齐云端 MSG_PACKET：BYTE=msgpack 二进制；base64=JSON 解析器 */
+      msgPacket: "BYTE",
+      autoDone: true,
+      appEnableAudio: true,
+      mockRoutineRate: 50,
+    };
+    const SOCKET_IO_CDN = {
+      BYTE: "https://cdn.socket.io/4.7.5/socket.io.msgpack.min.js",
+      base64: "https://cdn.socket.io/4.7.5/socket.io.min.js",
+    };
+    const CLOUD_ENDPOINT_PAIRS = [
+      { sock: "http://localhost:3000", http: "http://localhost:8002", testapp: "http://localhost:48080" },
+      { sock: "http://192.168.10.234:3000", http: "http://192.168.10.234:8002", testapp: "http://192.168.10.234:48080" },
+      { sock: "http://192.168.10.193:3000", http: "http://192.168.10.193:8002", testapp: "http://192.168.10.193:48080" },
+      { sock: "https://cocolamp.stg.leapwatt.com", http: "https://cocolamp.stg.leapwatt.com", testapp: "https://cocolamp.stg.leapwatt.com/coco-admin" },
+    ];
+
+    const messagesEl = document.getElementById("messages");
+    const inputEl = document.getElementById("input");
+    const dialogIdEl = document.getElementById("dialogId");
+    const btnNewDialog = document.getElementById("btnNewDialog");
+    const btnSend = document.getElementById("btnSend");
+    const btnHoldTalk = document.getElementById("btnHoldTalk");
+    const btnUploadWav = document.getElementById("btnUploadWav");
+    const btnSampleWav = document.getElementById("btnSampleWav");
+    const wavFile = document.getElementById("wavFile");
+    const btnDone = document.getElementById("btnDone");
+    const SAMPLE_WAV_URL = "sample-stt-123456789.wav";
+    const chkAutoDone = document.getElementById("chkAutoDone");
+    const btnAppAudio = document.getElementById("btnAppAudio");
+    const btnConfig = document.getElementById("btnConfig");
+    const btnReconnect = document.getElementById("btnReconnect");
+    const btnBenchmark = document.getElementById("btnBenchmark");
+    const benchmarkFile = document.getElementById("benchmarkFile");
+    const benchmarkPanel = document.getElementById("benchmarkPanel");
+    const benchmarkStatus = document.getElementById("benchmarkStatus");
+    const benchmarkProgress = document.getElementById("benchmarkProgress");
+    const btnBenchmarkStop = document.getElementById("btnBenchmarkStop");
+    const btnBenchmarkExport = document.getElementById("btnBenchmarkExport");
+    const btnPrompt = document.getElementById("btnPrompt");
+    const btnPromptTrigger = document.getElementById("btnPromptTrigger");
+    const btnSyncDevicePrompt = document.getElementById("btnSyncDevicePrompt");
+    const btnSyncDeviceState = document.getElementById("btnSyncDeviceState");
+    const btnLocalCache = document.getElementById("btnLocalCache");
+    const dot = document.getElementById("dot");
+    const statusText = document.getElementById("statusText");
+    const meta = document.getElementById("meta");
+
+    const configModal = document.getElementById("configModal");
+    const cfgDeviceSn = document.getElementById("cfgDeviceSn");
+    const cfgProductId = document.getElementById("cfgProductId");
+    const cfgSockApi = document.getElementById("cfgSockApi");
+    const cfgHttpApi = document.getElementById("cfgHttpApi");
+    const cfgTestappHttpApi = document.getElementById("cfgTestappHttpApi");
+    const cfgTraceApi = document.getElementById("cfgTraceApi");
+    const cfgApiPath = document.getElementById("cfgApiPath");
+    const cfgTransports = document.getElementById("cfgTransports");
+    const cfgMsgPacket = document.getElementById("cfgMsgPacket");
+    const cfgAuthToken = document.getElementById("cfgAuthToken");
+    const btnFillTestappToken = document.getElementById("btnFillTestappToken");
+    const authTokenHint = document.getElementById("authTokenHint");
+    const TESTAPP_EMAIL_LOGIN = {
+      email: "testapp@leapwatt.com",
+      code: "123456",
+    };
+    const cfgProvider = document.getElementById("cfgProvider");
+    const cfgModel = document.getElementById("cfgModel");
+    const cfgMockRoutineRate = document.getElementById("cfgMockRoutineRate");
+    const configHint = document.getElementById("configHint");
+    const btnSaveConfig = document.getElementById("btnSaveConfig");
+    const btnResetConfig = document.getElementById("btnResetConfig");
+    const btnCloseConfig = document.getElementById("btnCloseConfig");
+
+    const promptModal = document.getElementById("promptModal");
+    const promptTitle = document.getElementById("promptTitle");
+    const promptUrl = document.getElementById("promptUrl");
+    const promptBody = document.getElementById("promptBody");
+    const btnToggleRaw = document.getElementById("btnToggleRaw");
+    const btnClosePrompt = document.getElementById("btnClosePrompt");
+
+    const localCacheModal = document.getElementById("localCacheModal");
+    const localCacheUrl = document.getElementById("localCacheUrl");
+    const localCacheType = document.getElementById("localCacheType");
+    const localCacheProductId = document.getElementById("localCacheProductId");
+    const localCachePath = document.getElementById("localCachePath");
+    const localCacheEditor = document.getElementById("localCacheEditor");
+    const localCacheHint = document.getElementById("localCacheHint");
+    const btnLoadLocalCache = document.getElementById("btnLoadLocalCache");
+    const btnSaveLocalCache = document.getElementById("btnSaveLocalCache");
+    const btnCloseLocalCache = document.getElementById("btnCloseLocalCache");
+
+    const devicePromptModal = document.getElementById("devicePromptModal");
+    const devicePromptUrl = document.getElementById("devicePromptUrl");
+    const devicePromptPath = document.getElementById("devicePromptPath");
+    const devicePromptKeysEl = document.getElementById("devicePromptKeys");
+    const devicePromptActiveKeyEl = document.getElementById("devicePromptActiveKey");
+    const devicePromptVersion = document.getElementById("devicePromptVersion");
+    const devicePromptSyncType = document.getElementById("devicePromptSyncType");
+    const devicePromptEditor = document.getElementById("devicePromptEditor");
+    const devicePromptHint = document.getElementById("devicePromptHint");
+    const btnLoadDevicePrompt = document.getElementById("btnLoadDevicePrompt");
+    const btnAddDevicePromptKey = document.getElementById("btnAddDevicePromptKey");
+    const btnDelDevicePromptKey = document.getElementById("btnDelDevicePromptKey");
+    const btnSendDevicePrompt = document.getElementById("btnSendDevicePrompt");
+    const btnCloseDevicePrompt = document.getElementById("btnCloseDevicePrompt");
+
+    const deviceStateModal = document.getElementById("deviceStateModal");
+    const deviceStateUrl = document.getElementById("deviceStateUrl");
+    const deviceStatePath = document.getElementById("deviceStatePath");
+    const deviceStateKeysEl = document.getElementById("deviceStateKeys");
+    const deviceStateActiveNameEl = document.getElementById("deviceStateActiveName");
+    const deviceStateType = document.getElementById("deviceStateType");
+    const deviceStateDesc = document.getElementById("deviceStateDesc");
+    const deviceStateSyncType = document.getElementById("deviceStateSyncType");
+    const deviceStateEditor = document.getElementById("deviceStateEditor");
+    const deviceStateHint = document.getElementById("deviceStateHint");
+    const btnLoadDeviceState = document.getElementById("btnLoadDeviceState");
+    const btnAddDeviceState = document.getElementById("btnAddDeviceState");
+    const btnDelDeviceState = document.getElementById("btnDelDeviceState");
+    const btnSendDeviceState = document.getElementById("btnSendDeviceState");
+    const btnCloseDeviceState = document.getElementById("btnCloseDeviceState");
+
+    /** @type {Map<string, HTMLElement>} */
+    const assistantBubbles = new Map();
+    /** @type {Map<string, {el: HTMLElement, timer: number | null, ack?: Function}>} */
+    const clarifyCards = new Map();
+
+    /** @type {{key: string, prompt: string, version?: string, time?: string}[]} */
+    let devicePromptItems = [];
+    let activeDevicePromptKey = "";
+    /** @type {{name: string, value: string, desc: string, type: string, time?: string}[]} */
+    let deviceStateItems = [];
+    let activeDeviceStateName = "";
+
+    let currentMarkdown = "";
+    let showRaw = false;
+    let socket = null;
+    let joined = false;
+    let activeTraceId = null;
+    let lastIdx = -1;
+    let startupDoneSent = false;
+    let autoDoneForTrace = null;
+    /** 已占用的 done idx（含发送中），避免 auto done 与语音打断打到同一个 idx */
+    const reservedDoneIdx = new Set();
+    let currentSocketId = "";
+    /** @type {{ traceId: string, el: HTMLElement, ended: boolean, finalized: boolean, sliceCount: number } | null} */
+    let voiceTurn = null;
+    let voiceWantTalk = false;
+    let voiceStarting = false;
+    let voiceUploading = false;
+    let voiceGen = 0;
+    const benchmark = {
+      running: false,
+      questions: [],
+      results: [],
+      index: -1,
+      waiting: false,
+      currentTraceId: "",
+    };
+    let currentConfig = loadConfig();
+
+    if (window.marked) {
+      marked.setOptions({ breaks: true, gfm: true });
+    }
+
+    function loadConfig() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const stored = raw ? JSON.parse(raw) : {};
+        const merged = { ...DEFAULTS, ...stored };
+        merged.msgPacket = normalizeMsgPacket(merged.msgPacket);
+        merged.traceApi = normalizeTraceApi(merged.traceApi);
+        return merged;
+      } catch (_) {
+        return { ...DEFAULTS };
+      }
+    }
+
+    function syncAppAudioButton() {
+      const on = !!currentConfig.appEnableAudio;
+      btnAppAudio.textContent = on ? "音频 ON" : "音频 OFF";
+      btnAppAudio.classList.toggle("off", !on);
+      btnAppAudio.title = `chat 入参 appEnableAudio=${on}：控制云端是否向 APP 下发音频`;
+    }
+
+    function normalizeMsgPacket(value) {
+      const raw = String(value || "").trim();
+      if (raw.toLowerCase() === "base64") return "base64";
+      return "BYTE";
+    }
+
+    function normalizeTraceApi(value) {
+      let raw = String(value || "").trim().replace(/\/$/, "");
+      if (!raw) raw = DEFAULTS.traceApi;
+      if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) raw = `http://${raw}`;
+      return raw.replace(/\/$/, "");
+    }
+
+    function closeAllCombos(except) {
+      document.querySelectorAll(".combo-list").forEach((list) => {
+        if (list !== except) list.hidden = true;
+      });
+    }
+
+    function normalizeEndpoint(url) {
+      return String(url || "").trim().replace(/\/$/, "");
+    }
+
+    function endpointHost(url) {
+      try {
+        return new URL(normalizeEndpoint(url)).hostname;
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function withEndpointHost(url, hostname) {
+      try {
+        const parsed = new URL(normalizeEndpoint(url));
+        parsed.hostname = hostname;
+        return parsed.toString().replace(/\/$/, "");
+      } catch (_) {
+        return url;
+      }
+    }
+
+    function endpointAliases(url) {
+      const raw = normalizeEndpoint(url);
+      const aliases = [raw];
+      const host = endpointHost(raw);
+      if (host === "localhost") aliases.push(withEndpointHost(raw, "127.0.0.1"));
+      if (host === "127.0.0.1") aliases.push(withEndpointHost(raw, "localhost"));
+      return aliases.filter(Boolean);
+    }
+
+    function findCloudEndpointPair(value) {
+      const aliases = new Set(endpointAliases(value));
+      return CLOUD_ENDPOINT_PAIRS.find((item) =>
+        aliases.has(normalizeEndpoint(item.sock))
+        || aliases.has(normalizeEndpoint(item.http))
+        || aliases.has(normalizeEndpoint(item.testapp))
+      );
+    }
+
+    function applyCloudEndpointPair(sourceId, value) {
+      const pair = findCloudEndpointPair(value);
+      if (!pair) return;
+      const selectedHost = endpointHost(value);
+      const mapHost = (url) => (
+        selectedHost === "localhost" || selectedHost === "127.0.0.1"
+          ? withEndpointHost(url, selectedHost)
+          : url
+      );
+      if (sourceId !== "cfgSockApi") cfgSockApi.value = mapHost(pair.sock);
+      if (sourceId !== "cfgHttpApi") cfgHttpApi.value = mapHost(pair.http);
+      if (sourceId !== "cfgTestappHttpApi" && pair.testapp) cfgTestappHttpApi.value = mapHost(pair.testapp);
+    }
+
+    function bindComboBoxes() {
+      document.querySelectorAll(".combo").forEach((combo) => {
+        const input = combo.querySelector("input");
+        const toggle = combo.querySelector(".combo-toggle");
+        const list = combo.querySelector(".combo-list");
+        if (!input || !toggle || !list) return;
+        toggle.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const nextHidden = !list.hidden;
+          closeAllCombos(list);
+          list.hidden = nextHidden;
+        });
+        list.addEventListener("mousedown", (e) => {
+          const item = e.target.closest("li");
+          if (!item) return;
+          e.preventDefault();
+          input.value = item.dataset.value ?? "";
+          list.hidden = true;
+          input.dispatchEvent(new Event("change"));
+          input.focus();
+        });
+        input.addEventListener("change", () => {
+          if (input.id === "cfgSockApi" || input.id === "cfgHttpApi") {
+            applyCloudEndpointPair(input.id, input.value);
+          }
+        });
+        input.addEventListener("focus", () => closeAllCombos());
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") list.hidden = true;
+        });
+      });
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".combo")) closeAllCombos();
+      });
+    }
+
+    function saveConfig(nextConfig) {
+      currentConfig = { ...DEFAULTS, ...nextConfig };
+      currentConfig.msgPacket = normalizeMsgPacket(currentConfig.msgPacket);
+      currentConfig.traceApi = normalizeTraceApi(currentConfig.traceApi);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentConfig));
+      syncConfigForm();
+      chkAutoDone.checked = !!currentConfig.autoDone;
+      syncAppAudioButton();
+      localCacheProductId.value = String(currentConfig.productId || 7);
+      if (dialogIdEl) dialogIdEl.value = currentConfig.dialogId || "";
+      updateMeta();
+      refreshTraceViewLinks();
+    }
+
+    function syncConfigForm() {
+      cfgDeviceSn.value = currentConfig.deviceSn || "";
+      cfgProductId.value = String(currentConfig.productId || 7);
+      cfgSockApi.value = currentConfig.cloudSockApi || DEFAULTS.cloudSockApi;
+      cfgHttpApi.value = currentConfig.cloudHttpApi || DEFAULTS.cloudHttpApi;
+      cfgTestappHttpApi.value = currentConfig.testappHttpApi || DEFAULTS.testappHttpApi;
+      cfgTraceApi.value = currentConfig.traceApi || DEFAULTS.traceApi;
+      cfgApiPath.value = currentConfig.apiPath || "/coco-cloud-ts";
+      cfgTransports.value = currentConfig.transports || "websocket,polling";
+      cfgMsgPacket.value = normalizeMsgPacket(currentConfig.msgPacket);
+      cfgAuthToken.value = currentConfig.authToken || "";
+      cfgProvider.value = currentConfig.defaultProvider || "";
+      cfgModel.value = currentConfig.defaultModel || "";
+      cfgMockRoutineRate.value = String(currentConfig.mockRoutineRate ?? 50);
+      configHint.textContent =
+        "当前页面会直接连接云端 Socket.IO 和 HTTP。\n" +
+        "「云端 HTTP 地址」用于提示词 / local-cache 等接口；「testapp 鉴权 HTTP 地址」只用于填入 userToken。\n" +
+        "「Trace 请求服务路径」一般为设备 IP，用于打开 trace_view（默认 127.0.0.1:8912）。\n" +
+        "每个浏览器标签页都会拥有自己的云端 socketId，可独立测试 local-cache 提示词。\n" +
+        "msgPacket 需与云端 MSG_PACKET 一致：base64 用 JSON 解析器，BYTE 用 msgpack（socket.io.msgpack）。";
+    }
+
+    function buildNamespace() {
+      return `${(currentConfig.apiPath || "/coco-cloud-ts").replace(/\/$/, "")}/agent`;
+    }
+
+    function buildSocketPath() {
+      return `${(currentConfig.apiPath || "/coco-cloud-ts").replace(/\/$/, "")}/socket.io`;
+    }
+
+    function buildHttpBase() {
+      return `${(currentConfig.cloudHttpApi || "").replace(/\/$/, "")}${(currentConfig.apiPath || "/coco-cloud-ts").replace(/\/$/, "")}`;
+    }
+
+    function buildAuth() {
+      const token = (currentConfig.authToken || "").trim();
+      if (token) {
+        return { "device-sn": currentConfig.deviceSn, token };
+      }
+      return { "device-sign": "cocowa", "device-sn": currentConfig.deviceSn };
+    }
+
+    function getTransports() {
+      return String(currentConfig.transports || "websocket,polling")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    /** 按 msgPacket 动态加载对应 Socket.IO 客户端（JSON / msgpack） */
+    function ensureSocketIoClient(msgPacket) {
+      const mode = normalizeMsgPacket(msgPacket);
+      const src = SOCKET_IO_CDN[mode] || SOCKET_IO_CDN.BYTE;
+      if (typeof window.io === "function" && window.__mockAppSocketIoMode === mode) {
+        return Promise.resolve(mode);
+      }
+      return new Promise((resolve, reject) => {
+        document.querySelectorAll("script[data-mock-socketio]").forEach((el) => el.remove());
+        try { delete window.io; } catch (_) { window.io = undefined; }
+        window.__mockAppSocketIoMode = null;
+        const script = document.createElement("script");
+        script.dataset.mockSocketio = mode;
+        script.src = src;
+        script.async = true;
+        script.onload = () => {
+          if (typeof window.io !== "function") {
+            reject(new Error(`Socket.IO 脚本已加载但未导出 io: ${src}`));
+            return;
+          }
+          window.__mockAppSocketIoMode = mode;
+          resolve(mode);
+        };
+        script.onerror = () => reject(new Error(`加载 Socket.IO 失败: ${src}`));
+        document.head.appendChild(script);
+      });
+    }
+
+    function promptRequestUrl(kind) {
+      const path = kind === "get-trigger" ? "get-trigger" : "get";
+      const url = new URL(`${buildHttpBase()}/prompt/${path}`);
+      url.searchParams.set("deviceSN", currentConfig.deviceSn || "");
+      if (currentConfig.productId) {
+        url.searchParams.set("productId", String(currentConfig.productId));
+      }
+      if (currentSocketId) {
+        url.searchParams.set("socketId", currentSocketId);
+      }
+      return url.toString();
+    }
+
+    function localCacheRequestUrl(type) {
+      const url = new URL(`${buildHttpBase()}/prompt/local-cache`);
+      url.searchParams.set("productId", String(Number(localCacheProductId.value) || currentConfig.productId || 7));
+      url.searchParams.set("type", type);
+      if (currentSocketId) {
+        url.searchParams.set("socketId", currentSocketId);
+      }
+      return url.toString();
+    }
+
+    function getTrace() {
+      return window.MockTraceLatency || null;
+    }
+
+    function updateMeta() {
+      const packet = normalizeMsgPacket(currentConfig.msgPacket);
+      const writer = getTrace() && getTrace().getWriterStatus ? getTrace().getWriterStatus() : null;
+      const traceHint = writer
+        ? writer.ok
+          ? ` · trace=${writer.dir || "ok"}`
+          : ` · trace写入失败(${writer.error || "请用 serve.bat / server.py 启动"})`
+        : "";
+      meta.textContent =
+        `SN=${currentConfig.deviceSn || "-"} · socketId=${currentSocketId || "-"} · productId=${currentConfig.productId || "-"} ` +
+        `· msgPacket=${packet} · sock=${currentConfig.cloudSockApi || "-"}${buildNamespace()} · joined=${joined} · lastIdx=${lastIdx}` +
+        ` · dialogId=${currentDialogId() || "-"} · appEnableAudio=${!!currentConfig.appEnableAudio}` +
+        ` · traceApi=${currentConfig.traceApi || DEFAULTS.traceApi}` +
+        traceHint;
+      localCacheHint.textContent = currentSocketId
+        ? `优先加载当前云端 socketId=${currentSocketId} 的内存覆盖；若未设置，则使用云端 /local-cache 回填的系统提示词正文。保存时只写入当前 socketId 的内存覆盖。`
+        : "优先加载当前 socketId 的内存覆盖；若未设置，则使用云端 /local-cache 回填的系统提示词正文。保存时只写入当前 socketId 的内存覆盖。";
+    }
+
+    function scrollBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function uint8ToBase64(bytes) {
+      let binary = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+      }
+      return btoa(binary);
+    }
+
+    /** 拷成独立 Uint8Array，避免 view 抽空；BYTE 模式不要传 ArrayBuffer（部分 notepack 用 .length，ArrayBuffer 没有，会编成 0 字节 bin） */
+    function toStandalonePcmBytes(pcm) {
+      if (pcm instanceof Uint8Array) return pcm.slice();
+      if (pcm instanceof ArrayBuffer) return new Uint8Array(pcm);
+      if (ArrayBuffer.isView(pcm)) {
+        return new Uint8Array(pcm.buffer.slice(pcm.byteOffset, pcm.byteOffset + pcm.byteLength));
+      }
+      if (Array.isArray(pcm)) return Uint8Array.from(pcm);
+      throw new Error("invalid pcm chunk");
+    }
+
+    function encodeAudioBase64(pcm) {
+      const bytes = toStandalonePcmBytes(pcm);
+      if (!bytes.byteLength) {
+        console.warn("[mock_app] empty pcm chunk", Object.prototype.toString.call(pcm));
+      }
+      if (normalizeMsgPacket(currentConfig.msgPacket) === "BYTE") return bytes;
+      return uint8ToBase64(bytes);
+    }
+
+    function buildChatBody({ traceId, end, text = "", audio = null }) {
+      const body = {
+        traceId,
+        end: !!end,
+        text: text || "",
+        state: [],
+        appEnableAudio: !!currentConfig.appEnableAudio,
+      };
+      if (audio) body.audio = audio;
+      if ((currentConfig.defaultProvider || "").trim()) body.provider = currentConfig.defaultProvider.trim();
+      if ((currentConfig.defaultModel || "").trim()) body.model = currentConfig.defaultModel.trim();
+      const dialogId = currentDialogId();
+      if (dialogId) body.dialogId = dialogId;
+      return body;
+    }
+
+    function buildAudioChunk(pcm, audioId, index, flag) {
+      return {
+        base64: encodeAudioBase64(pcm),
+        format: AUDIO_FORMAT_PCM,
+        id: audioId,
+        index,
+        flag,
+        sampleRate: VOICE_SAMPLE_RATE,
+        channels: 1,
+        bitDepth: 16,
+      };
+    }
+
+    function emitChat(body) {
+      if (!socket || !socket.connected || !joined) return false;
+      if (body && body.end && body.traceId && window.MockAssistantAudio) {
+        window.MockAssistantAudio.startTurn(body.traceId);
+      }
+      socket.emit(EVENT_CHAT, body);
+      return true;
+    }
+
+    function isTypingField(el) {
+      if (!el || el === document.body || el === document.documentElement) return false;
+      const tag = String(el.tagName || "").toLowerCase();
+      if (tag === "textarea" || tag === "select") return true;
+      if (el.isContentEditable) return true;
+      if (tag !== "input") return false;
+      const type = String(el.type || "text").toLowerCase();
+      return !["button", "checkbox", "radio", "submit", "reset", "file", "range", "color"].includes(type);
+    }
+
+    function isModalOpen() {
+      return [configModal, promptModal, localCacheModal, devicePromptModal, deviceStateModal]
+        .some((modal) => modal && modal.classList.contains("open"));
+    }
+
+    function canSpacePtt(target) {
+      if (isModalOpen()) return false;
+      if (target === inputEl && !inputEl.value) return true;
+      return !isTypingField(target);
+    }
+
+    function syncHoldTalkButton() {
+      const recording = !!(voiceTurn && !voiceTurn.finalized && (voiceWantTalk || voiceStarting || (window.MockVoicePtt && window.MockVoicePtt.isActive())));
+      const busy = voiceUploading || recording;
+      if (btnHoldTalk) {
+        btnHoldTalk.classList.toggle("recording", recording);
+        btnHoldTalk.textContent = recording ? "松开结束" : "按住说话";
+        btnHoldTalk.disabled = voiceUploading;
+      }
+      if (btnUploadWav) {
+        btnUploadWav.classList.toggle("busy", voiceUploading);
+        btnUploadWav.disabled = busy;
+        btnUploadWav.textContent = voiceUploading ? "上传中…" : "上传 WAV";
+      }
+      if (btnSampleWav) {
+        btnSampleWav.classList.toggle("busy", voiceUploading);
+        btnSampleWav.disabled = busy;
+      }
+    }
+
+    function ensureVoiceUserBubble(traceId, options = {}) {
+      if (voiceTurn && voiceTurn.el && voiceTurn.traceId === traceId) return voiceTurn.el;
+      const el = document.createElement("div");
+      el.className = "bubble user voice pending";
+      el.dataset.traceId = traceId;
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = options.label || "user · 语音";
+      const body = document.createElement("div");
+      body.className = "body";
+      body.textContent = options.hint || "正在说话…";
+      el.appendChild(label);
+      el.appendChild(body);
+      messagesEl.appendChild(el);
+      addTraceLine(traceId);
+      scrollBottom();
+      return el;
+    }
+
+    function setVoiceBubbleText(text, pending) {
+      if (!voiceTurn || !voiceTurn.el) return;
+      const body = voiceTurn.el.querySelector(".body");
+      if (body) body.textContent = text;
+      voiceTurn.el.classList.toggle("pending", !!pending);
+      scrollBottom();
+    }
+
+    function applyUserEcho(inner) {
+      if (!voiceTurn || voiceTurn.finalized || !voiceTurn.ended) return false;
+      const text = String(inner && (inner.text || extractText(inner)) || "").trim();
+      const isEnd = Number(inner && inner.flag) === FLAG_END || inner.flag == null;
+      if (text) setVoiceBubbleText(text, !isEnd);
+      if (isEnd) {
+        if (!text) setVoiceBubbleText("（未识别到语音）", false);
+        const label = voiceTurn.el.querySelector(".label");
+        if (label && !label.textContent.endsWith(" · END")) label.textContent += " · END";
+        voiceTurn.finalized = true;
+        syncHoldTalkButton();
+      }
+      return true;
+    }
+
+    function emitVoiceSlice(slice) {
+      if (!voiceTurn || !socket || !socket.connected || !joined) return;
+      const body = buildChatBody({
+        traceId: voiceTurn.traceId,
+        end: false,
+        audio: buildAudioChunk(slice.pcm, voiceTurn.traceId, slice.index, slice.flag),
+      });
+      if (emitChat(body)) voiceTurn.sliceCount += 1;
+    }
+
+    function beginVoiceTurn(traceId, options = {}) {
+      activeTraceId = traceId;
+      lastIdx = -1;
+      autoDoneForTrace = null;
+      reservedDoneIdx.clear();
+      if (window.MockAssistantAudio) window.MockAssistantAudio.sealAll();
+      updateMeta();
+      voiceTurn = {
+        traceId,
+        el: ensureVoiceUserBubble(traceId, options),
+        ended: false,
+        finalized: false,
+        sliceCount: 0,
+      };
+    }
+
+    function voiceBusy() {
+      return !!(voiceUploading || voiceStarting || voiceWantTalk || (window.MockVoicePtt && window.MockVoicePtt.isActive()));
+    }
+
+    async function sendWavBuffer(arrayBuffer, displayName) {
+      if (!window.MockVoicePtt || !window.MockVoicePtt.parseWav) {
+        addSystem("语音模块未加载", "error");
+        return;
+      }
+      if (!socket || !socket.connected || !joined) {
+        addSystem("尚未连接并 join 云端，无法上传 WAV", "error");
+        return;
+      }
+      if (voiceBusy()) {
+        addSystem("当前已有语音进行中，请先结束再上传 WAV", "error");
+        return;
+      }
+      const parsed = window.MockVoicePtt.parseWav(arrayBuffer);
+      const pcm = window.MockVoicePtt.wavToPcm16k(parsed);
+      const slices = window.MockVoicePtt.slicePcm(pcm);
+      if (!slices.length) {
+        addSystem("WAV 没有可上传的 PCM 数据", "error");
+        return;
+      }
+      const gen = ++voiceGen;
+      voiceUploading = true;
+      syncHoldTalkButton();
+      try {
+        if (window.MockAssistantAudio) window.MockAssistantAudio.sealAll();
+        await sendDone({ interrupt: true, reason: "wav interrupt" });
+        if (gen !== voiceGen) return;
+        const traceId = uuidv7();
+        beginVoiceTurn(traceId, {
+          label: "user · WAV",
+          hint: `上传 ${displayName} · 0/${slices.length}`,
+        });
+        for (let i = 0; i < slices.length; i++) {
+          if (gen !== voiceGen) return;
+          emitVoiceSlice(slices[i]);
+          setVoiceBubbleText(`上传 ${displayName} · ${voiceTurn.sliceCount}/${slices.length}`, true);
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+        if (gen !== voiceGen || !voiceTurn || voiceTurn.ended) return;
+        voiceTurn.ended = true;
+        emitChat(buildChatBody({ traceId: voiceTurn.traceId, end: true }));
+        setVoiceBubbleText("正在识别…", true);
+      } catch (e) {
+        addSystem(`WAV 上传失败: ${e && e.message ? e.message : e}`, "error");
+        if (voiceTurn && !voiceTurn.finalized) {
+          voiceTurn.ended = true;
+          setVoiceBubbleText(`WAV 失败: ${e && e.message ? e.message : e}`, false);
+          voiceTurn.finalized = true;
+        }
+      } finally {
+        if (gen === voiceGen) voiceUploading = false;
+        syncHoldTalkButton();
+      }
+    }
+
+    async function sendWavFile(file) {
+      if (!file) return;
+      const buffer = await file.arrayBuffer();
+      await sendWavBuffer(buffer, file.name || "audio.wav");
+    }
+
+    async function sendSampleWav() {
+      try {
+        const res = await fetch(SAMPLE_WAV_URL);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const buffer = await res.arrayBuffer();
+        await sendWavBuffer(buffer, "请听到叮的声音后，匀速自然朗读：123456789.wav");
+      } catch (e) {
+        addSystem(`加载样例 WAV 失败: ${e && e.message ? e.message : e}`, "error");
+      }
+    }
+
+    async function startVoicePtt() {
+      if (voiceUploading || voiceStarting || (window.MockVoicePtt && window.MockVoicePtt.isActive())) return;
+      if (!window.MockVoicePtt) {
+        addSystem("语音模块未加载", "error");
+        return;
+      }
+      if (!socket || !socket.connected || !joined) {
+        addSystem("尚未连接并 join 云端，无法语音", "error");
+        return;
+      }
+      const gen = ++voiceGen;
+      voiceWantTalk = true;
+      voiceStarting = true;
+      syncHoldTalkButton();
+      try {
+        if (window.MockAssistantAudio) window.MockAssistantAudio.sealAll();
+        await sendDone({ interrupt: true, reason: "voice interrupt" });
+        if (gen !== voiceGen || !voiceWantTalk) return;
+        const traceId = uuidv7();
+        beginVoiceTurn(traceId);
+        await window.MockVoicePtt.start({
+          onSlice: (slice) => emitVoiceSlice(slice),
+        });
+        if (gen !== voiceGen || !voiceWantTalk) {
+          window.MockVoicePtt.stop();
+          if (voiceWantTalk === false) finishVoicePtt();
+          return;
+        }
+      } catch (e) {
+        if (gen === voiceGen) {
+          addSystem(`麦克风启动失败: ${e && e.message ? e.message : e}`, "error");
+          if (voiceTurn && !voiceTurn.finalized) {
+            setVoiceBubbleText("麦克风启动失败", false);
+            voiceTurn.finalized = true;
+          }
+        }
+      } finally {
+        if (gen === voiceGen) voiceStarting = false;
+        syncHoldTalkButton();
+      }
+    }
+
+    function finishVoicePtt() {
+      const turn = voiceTurn;
+      if (!turn || turn.ended || turn.finalized) {
+        syncHoldTalkButton();
+        return;
+      }
+      turn.ended = true;
+      const result = window.MockVoicePtt ? window.MockVoicePtt.stop() : { sliceCount: turn.sliceCount };
+      if (!socket || !socket.connected || !joined) {
+        setVoiceBubbleText("连接已断开，未上传结束包", false);
+        turn.finalized = true;
+        syncHoldTalkButton();
+        return;
+      }
+      if (!turn.sliceCount && !(result && result.sliceCount)) {
+        setVoiceBubbleText("未采集到音频", false);
+        turn.finalized = true;
+        syncHoldTalkButton();
+        return;
+      }
+      emitChat(buildChatBody({ traceId: turn.traceId, end: true }));
+      setVoiceBubbleText("正在识别…", true);
+      syncHoldTalkButton();
+    }
+
+    function requestVoiceStart() {
+      if (voiceUploading) return;
+      voiceWantTalk = true;
+      startVoicePtt();
+    }
+
+    function requestVoiceStop() {
+      voiceWantTalk = false;
+      voiceGen += 1;
+      if (voiceStarting) {
+        syncHoldTalkButton();
+        return;
+      }
+      finishVoicePtt();
+    }
+
+    function traceFileName(traceId) {
+      const id = String(traceId || "").trim();
+      if (!id) return "";
+      return id.endsWith(".json") ? id : `${id}.json`;
+    }
+
+    function buildTraceViewUrl(traceId) {
+      const file = traceFileName(traceId);
+      if (!file) return "";
+      const base = normalizeTraceApi(currentConfig.traceApi || DEFAULTS.traceApi);
+      return `${base}/#${encodeURIComponent(file)}`;
+    }
+
+    function refreshTraceViewLinks() {
+      document.querySelectorAll("a.trace-line[data-trace-id], a.trace-file[data-trace-id]").forEach((el) => {
+        const href = buildTraceViewUrl(el.dataset.traceId);
+        if (href) el.href = href;
+      });
+    }
+
+    function addTraceLine(traceId) {
+      const id = String(traceId || "").trim();
+      if (!id) return null;
+      const file = traceFileName(id);
+      const el = document.createElement("a");
+      el.className = "trace-line";
+      el.dataset.traceId = id;
+      el.textContent = `traceId=${id}`;
+      el.href = buildTraceViewUrl(id);
+      el.target = "_blank";
+      el.rel = "noopener noreferrer";
+      el.title = `在 trace_view 打开 /oem/trace/${file}`;
+      messagesEl.appendChild(el);
+      scrollBottom();
+      return el;
+    }
+
+    function addSystem(text, cls = "system") {
+      const el = document.createElement("div");
+      el.className = `bubble ${cls}`;
+      el.textContent = text;
+      messagesEl.appendChild(el);
+      scrollBottom();
+      return el;
+    }
+
+    function ensureAssistantBubble(id) {
+      let el = assistantBubbles.get(id);
+      if (el) return el;
+      el = document.createElement("div");
+      el.className = "bubble assistant";
+      el.dataset.id = id;
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = `assistant · ${id?.slice?.(0, 8) || "?"}`;
+      const body = document.createElement("div");
+      body.className = "body";
+      el.appendChild(label);
+      el.appendChild(body);
+      messagesEl.appendChild(el);
+      assistantBubbles.set(id, el);
+      return el;
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function successCode(code) {
+      const n = Number(code);
+      return Number.isFinite(n) && n === 200;
+    }
+
+    function unwrapEnvelope(data) {
+      if (!data || typeof data !== "object") return null;
+      if ("code" in data) {
+        if (!successCode(data.code)) return null;
+        return typeof data.data === "object" && data.data ? data.data : null;
+      }
+      return data;
+    }
+
+    function attrsToStr(params) {
+      if (!params || typeof params !== "object") return "";
+      return Object.entries(params)
+        .filter(([, v]) => v !== null && v !== undefined)
+        .map(([k, v]) => ` ${k}="${String(v)}"`)
+        .join("");
+    }
+
+    function fallbackXml(inner) {
+      const parts = [];
+      if (typeof inner.text === "string" && inner.text) parts.push(inner.text);
+      const name = inner.name;
+      if (typeof name === "string" && name && name !== "speak") {
+        if (inner.pattern === 1) parts.push(`<${name}${attrsToStr(inner.params)}>`);
+        else if (inner.pattern === 2) parts.push(`</${name}>`);
+        else parts.push(`<${name}${attrsToStr(inner.params)}/>`);
+      } else if (name === "speak" && inner.params && typeof inner.params === "object") {
+        for (const key of ["text", "content", "message"]) {
+          const value = inner.params[key];
+          if (typeof value === "string" && value) {
+            parts.push(value);
+            break;
+          }
+        }
+      }
+      return parts.join("");
+    }
+
+    function extractText(inner) {
+      if (typeof inner.token === "string" && inner.token) return inner.token;
+      return fallbackXml(inner);
+    }
+
+    function tokensToXml(funcTokens) {
+      if (!Array.isArray(funcTokens)) return "";
+      return funcTokens
+        .filter((item) => item && typeof item === "object")
+        .map((item) => extractText(item))
+        .join("");
+    }
+
+    function renderPromptBody() {
+      if (showRaw) {
+        promptBody.className = "modal-body raw-view";
+        promptBody.textContent = currentMarkdown || "(空)";
+        btnToggleRaw.textContent = "渲染";
+      } else {
+        promptBody.className = "modal-body md-view";
+        promptBody.innerHTML = window.marked ? marked.parse(currentMarkdown || "_（空）_") : escapeHtml(currentMarkdown || "(空)");
+        btnToggleRaw.textContent = "源码";
+      }
+    }
+
+    function openPromptModal(title, url, markdown) {
+      currentMarkdown = markdown || "";
+      showRaw = false;
+      promptTitle.textContent = title;
+      promptUrl.textContent = url || "";
+      promptUrl.title = url || "";
+      renderPromptBody();
+      promptModal.classList.add("open");
+    }
+
+    function closePromptModal() {
+      promptModal.classList.remove("open");
+    }
+
+    function openConfigModal() {
+      syncConfigForm();
+      setAuthTokenHint("");
+      configModal.classList.add("open");
+    }
+
+    function closeConfigModal() {
+      configModal.classList.remove("open");
+    }
+
+    function openLocalCacheModal() {
+      localCacheModal.classList.add("open");
+    }
+
+    function closeLocalCacheModal() {
+      localCacheModal.classList.remove("open");
+    }
+
+    function openDevicePromptModal() {
+      devicePromptUrl.textContent = EVENT_DEVICE_PROMPT_SYNC;
+      devicePromptUrl.title = EVENT_DEVICE_PROMPT_SYNC;
+      devicePromptHint.textContent =
+        `按 key 分类编辑 prompt；点击「同步到云端」组装 { type, data } 经 ${EVENT_DEVICE_PROMPT_SYNC} 写入 SN=${currentConfig.deviceSn || "?"}。`;
+      devicePromptModal.classList.add("open");
+      renderDevicePromptKeys();
+    }
+
+    function closeDevicePromptModal() {
+      flushActiveDevicePrompt();
+      devicePromptModal.classList.remove("open");
+    }
+
+    function devicePromptShortLabel(key) {
+      const parts = String(key || "").split(":").filter(Boolean);
+      if (parts.length >= 2) return parts.slice(-2).join(":");
+      return key || "(空 key)";
+    }
+
+    function findDevicePromptItem(key) {
+      return devicePromptItems.find((item) => item.key === key);
+    }
+
+    function flushActiveDevicePrompt() {
+      if (!activeDevicePromptKey) return;
+      const item = findDevicePromptItem(activeDevicePromptKey);
+      if (!item) return;
+      item.prompt = devicePromptEditor.value;
+      item.version = devicePromptVersion.value.trim() || undefined;
+    }
+
+    function renderDevicePromptKeys() {
+      devicePromptKeysEl.innerHTML = "";
+      if (!devicePromptItems.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "暂无条目，点击「加载样本」或「新增 key」";
+        devicePromptKeysEl.appendChild(empty);
+        return;
+      }
+      for (const item of devicePromptItems) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = devicePromptShortLabel(item.key);
+        btn.title = item.key;
+        if (item.key === activeDevicePromptKey) btn.classList.add("active");
+        btn.onclick = () => selectDevicePromptKey(item.key);
+        devicePromptKeysEl.appendChild(btn);
+      }
+    }
+
+    function selectDevicePromptKey(key) {
+      flushActiveDevicePrompt();
+      const item = findDevicePromptItem(key);
+      if (!item) {
+        activeDevicePromptKey = "";
+        devicePromptActiveKeyEl.textContent = "未选择 key";
+        devicePromptActiveKeyEl.title = "";
+        devicePromptVersion.value = "";
+        devicePromptEditor.value = "";
+        devicePromptEditor.disabled = true;
+        renderDevicePromptKeys();
+        return;
+      }
+      activeDevicePromptKey = item.key;
+      devicePromptActiveKeyEl.textContent = item.key;
+      devicePromptActiveKeyEl.title = item.key;
+      devicePromptVersion.value = item.version || "";
+      devicePromptEditor.value = item.prompt || "";
+      devicePromptEditor.disabled = false;
+      renderDevicePromptKeys();
+    }
+
+    function setDevicePromptItems(items, preferredKey) {
+      devicePromptItems = (Array.isArray(items) ? items : [])
+        .filter((item) => item && typeof item.key === "string" && item.key.trim())
+        .map((item) => ({
+          key: String(item.key).trim(),
+          prompt: typeof item.prompt === "string" ? item.prompt : "",
+          version: item.version != null ? String(item.version) : undefined,
+          time: item.time != null ? String(item.time) : undefined,
+        }));
+      const nextKey =
+        (preferredKey && findDevicePromptItem(preferredKey) && preferredKey) ||
+        (devicePromptItems[0] && devicePromptItems[0].key) ||
+        "";
+      activeDevicePromptKey = "";
+      if (nextKey) selectDevicePromptKey(nextKey);
+      else selectDevicePromptKey("");
+      devicePromptPath.textContent = `${devicePromptItems.length} 条 key`;
+      devicePromptPath.title = devicePromptItems.map((item) => item.key).join(", ");
+    }
+
+    function buildDevicePromptPayload() {
+      flushActiveDevicePrompt();
+      const type = devicePromptSyncType.value === "delete" ? "delete" : "update";
+      if (!devicePromptItems.length) {
+        throw new Error("没有可同步的 key，请先加载样本或新增 key");
+      }
+      const now = new Date().toISOString();
+      const data = devicePromptItems.map((item) => {
+        const row = {
+          key: item.key,
+          prompt: item.prompt || "",
+        };
+        if (item.version) row.version = item.version;
+        row.time = item.time || now;
+        return row;
+      });
+      return { type, data };
+    }
+
+    function addDevicePromptKey() {
+      flushActiveDevicePrompt();
+      const key = window.prompt("输入新的 prompt key（如 data:res:trigger:custom_prompt）", "");
+      if (key == null) return;
+      const trimmed = key.trim();
+      if (!trimmed) {
+        addSystem("key 不能为空", "error");
+        return;
+      }
+      if (findDevicePromptItem(trimmed)) {
+        addSystem(`key 已存在: ${trimmed}`, "error");
+        selectDevicePromptKey(trimmed);
+        return;
+      }
+      devicePromptItems.push({
+        key: trimmed,
+        prompt: "",
+        version: "1.0",
+        time: new Date().toISOString(),
+      });
+      selectDevicePromptKey(trimmed);
+      devicePromptPath.textContent = `${devicePromptItems.length} 条 key`;
+      devicePromptPath.title = devicePromptItems.map((item) => item.key).join(", ");
+      devicePromptEditor.focus();
+    }
+
+    function deleteActiveDevicePromptKey() {
+      flushActiveDevicePrompt();
+      if (!activeDevicePromptKey) {
+        addSystem("当前没有选中的 key", "error");
+        return;
+      }
+      if (!window.confirm(`删除 key？\n${activeDevicePromptKey}`)) return;
+      const idx = devicePromptItems.findIndex((item) => item.key === activeDevicePromptKey);
+      if (idx < 0) return;
+      devicePromptItems.splice(idx, 1);
+      const next = devicePromptItems[Math.min(idx, devicePromptItems.length - 1)];
+      setDevicePromptItems(devicePromptItems, next ? next.key : "");
+    }
+
+    function openDeviceStateModal() {
+      deviceStateUrl.textContent = EVENT_DEVICE_STATE_SYNC;
+      deviceStateUrl.title = EVENT_DEVICE_STATE_SYNC;
+      deviceStateHint.textContent =
+        `按 name 分类编辑状态机；点击「同步到云端」组装 { type, stateData } 经 ${EVENT_DEVICE_STATE_SYNC} 写入 SN=${currentConfig.deviceSn || "?"}。`;
+      deviceStateModal.classList.add("open");
+      renderDeviceStateKeys();
+    }
+
+    function closeDeviceStateModal() {
+      flushActiveDeviceState();
+      deviceStateModal.classList.remove("open");
+    }
+
+    function normalizeStateType(value) {
+      const raw = String(value || "").trim().toLowerCase();
+      if (raw === "audio" || raw === "image") return raw;
+      return "json";
+    }
+
+    function findDeviceStateItem(name) {
+      return deviceStateItems.find((item) => item.name === name);
+    }
+
+    function flushActiveDeviceState() {
+      if (!activeDeviceStateName) return;
+      const item = findDeviceStateItem(activeDeviceStateName);
+      if (!item) return;
+      item.value = deviceStateEditor.value;
+      item.desc = deviceStateDesc.value;
+      item.type = normalizeStateType(deviceStateType.value);
+    }
+
+    function renderDeviceStateKeys() {
+      deviceStateKeysEl.innerHTML = "";
+      if (!deviceStateItems.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "暂无条目，点击「加载样本」或「新增 name」";
+        deviceStateKeysEl.appendChild(empty);
+        return;
+      }
+      for (const item of deviceStateItems) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = devicePromptShortLabel(item.name);
+        btn.title = item.name;
+        if (item.name === activeDeviceStateName) btn.classList.add("active");
+        btn.onclick = () => selectDeviceStateName(item.name);
+        deviceStateKeysEl.appendChild(btn);
+      }
+    }
+
+    function selectDeviceStateName(name) {
+      flushActiveDeviceState();
+      const item = findDeviceStateItem(name);
+      if (!item) {
+        activeDeviceStateName = "";
+        deviceStateActiveNameEl.textContent = "未选择 name";
+        deviceStateActiveNameEl.title = "";
+        deviceStateType.value = "json";
+        deviceStateDesc.value = "";
+        deviceStateEditor.value = "";
+        deviceStateEditor.disabled = true;
+        renderDeviceStateKeys();
+        return;
+      }
+      activeDeviceStateName = item.name;
+      deviceStateActiveNameEl.textContent = item.name;
+      deviceStateActiveNameEl.title = item.name;
+      deviceStateType.value = normalizeStateType(item.type);
+      deviceStateDesc.value = item.desc || "";
+      deviceStateEditor.value = item.value || "";
+      deviceStateEditor.disabled = false;
+      renderDeviceStateKeys();
+    }
+
+    function setDeviceStateItems(items, preferredName) {
+      deviceStateItems = (Array.isArray(items) ? items : [])
+        .filter((item) => item && typeof item.name === "string" && item.name.trim())
+        .map((item) => ({
+          name: String(item.name).trim(),
+          value: typeof item.value === "string" ? item.value : item.value == null ? "" : String(item.value),
+          desc: typeof item.desc === "string" ? item.desc : "",
+          type: normalizeStateType(item.type),
+          time: item.time != null ? String(item.time) : undefined,
+        }));
+      const nextName =
+        (preferredName && findDeviceStateItem(preferredName) && preferredName) ||
+        (deviceStateItems[0] && deviceStateItems[0].name) ||
+        "";
+      activeDeviceStateName = "";
+      if (nextName) selectDeviceStateName(nextName);
+      else selectDeviceStateName("");
+      deviceStatePath.textContent = `${deviceStateItems.length} 条 name`;
+      deviceStatePath.title = deviceStateItems.map((item) => item.name).join(", ");
+    }
+
+    function buildDeviceStatePayload() {
+      flushActiveDeviceState();
+      const syncType = deviceStateSyncType.value;
+      const type = syncType === "add" || syncType === "delete" ? syncType : "update";
+      if (!deviceStateItems.length) {
+        throw new Error("没有可同步的状态，请先加载样本或新增 name");
+      }
+      const now = new Date().toISOString();
+      const stateData = deviceStateItems.map((item) => {
+        const row = {
+          name: item.name,
+          value: item.value || "",
+          desc: item.desc || "",
+          type: normalizeStateType(item.type),
+        };
+        row.time = item.time || now;
+        return row;
+      });
+      return { type, stateData };
+    }
+
+    function addDeviceStateItem() {
+      flushActiveDeviceState();
+      const name = window.prompt("输入新的状态 name（如 status:ai:vision:custom）", "");
+      if (name == null) return;
+      const trimmed = name.trim();
+      if (!trimmed) {
+        addSystem("name 不能为空", "error");
+        return;
+      }
+      if (findDeviceStateItem(trimmed)) {
+        addSystem(`name 已存在: ${trimmed}`, "error");
+        selectDeviceStateName(trimmed);
+        return;
+      }
+      deviceStateItems.push({
+        name: trimmed,
+        value: "",
+        desc: "",
+        type: "json",
+        time: new Date().toISOString(),
+      });
+      selectDeviceStateName(trimmed);
+      deviceStatePath.textContent = `${deviceStateItems.length} 条 name`;
+      deviceStatePath.title = deviceStateItems.map((item) => item.name).join(", ");
+      deviceStateEditor.focus();
+    }
+
+    function deleteActiveDeviceState() {
+      flushActiveDeviceState();
+      if (!activeDeviceStateName) {
+        addSystem("当前没有选中的 name", "error");
+        return;
+      }
+      if (!window.confirm(`删除 name？\n${activeDeviceStateName}`)) return;
+      const idx = deviceStateItems.findIndex((item) => item.name === activeDeviceStateName);
+      if (idx < 0) return;
+      deviceStateItems.splice(idx, 1);
+      const next = deviceStateItems[Math.min(idx, deviceStateItems.length - 1)];
+      setDeviceStateItems(deviceStateItems, next ? next.name : "");
+    }
+
+    /** 加载样本 JSON，按 name 填入分类编辑器（来自 Redis coco-cloud-ts:device-state:T004） */
+    async function loadDeviceStateSample() {
+      btnLoadDeviceState.disabled = true;
+      try {
+        const resp = await fetch(SAMPLE_DEVICE_STATES_URL, { cache: "no-store" });
+        if (!resp.ok) throw new Error(`加载样本失败 HTTP ${resp.status}`);
+        const payload = await resp.json();
+        if (payload?.type === "update" || payload?.type === "add" || payload?.type === "delete") {
+          deviceStateSyncType.value = payload.type;
+        }
+        setDeviceStateItems(payload?.stateData || []);
+        deviceStateUrl.textContent = SAMPLE_DEVICE_STATES_URL;
+        deviceStateUrl.title = SAMPLE_DEVICE_STATES_URL;
+        deviceStatePath.textContent = `样本 ${deviceStateItems.length} 条 · ${SAMPLE_DEVICE_STATES_URL}`;
+        deviceStatePath.title = deviceStateItems.map((item) => item.name).join(", ");
+        addSystem(`已加载设备状态机样本 ${deviceStateItems.length} 条，可按 name 分类编辑`);
+      } catch (e) {
+        addSystem(`加载设备状态机样本失败: ${e}`, "error");
+      } finally {
+        btnLoadDeviceState.disabled = false;
+      }
+    }
+
+    /** 将当前各 name 的编辑内容组装为 JSON，发送 device:state:sync */
+    async function sendDeviceState() {
+      if (!socket || !socket.connected || !joined) {
+        addSystem("请先连接并加入云端房间后再同步设备状态机", "error");
+        return;
+      }
+      btnSendDeviceState.disabled = true;
+      try {
+        const payload = buildDeviceStatePayload();
+        const names = payload.stateData.map((item) => item.name);
+        socket.emit(EVENT_DEVICE_STATE_SYNC, payload);
+        deviceStatePath.textContent = `已发送 ${payload.stateData.length} 条 · SN=${currentConfig.deviceSn}`;
+        deviceStatePath.title = names.join(", ");
+        addSystem(
+          `已发送 ${EVENT_DEVICE_STATE_SYNC}（type=${payload.type}, count=${payload.stateData.length}）\n` +
+            `设备 SN=${currentConfig.deviceSn}\nnames: ${names.join(", ")}`
+        );
+      } catch (e) {
+        addSystem(`同步设备状态机失败: ${e}`, "error");
+      } finally {
+        btnSendDeviceState.disabled = false;
+      }
+    }
+
+    function updateStatusUi() {
+      const ok = !!(socket && socket.connected && joined);
+      dot.classList.toggle("on", ok);
+      statusText.textContent = ok
+        ? "已连接 · joined"
+        : socket && socket.connected
+          ? "已连接 · 等待 join"
+          : "未连接";
+      updateMeta();
+    }
+
+    function pushDoneLog(idx, interrupt, reason, ack) {
+      addSystem(
+        `done 已发送 idx=${idx} interrupt=${interrupt}` +
+        (reason ? ` reason=${reason}` : "") +
+        ` ack=${JSON.stringify(ack)}`
+      );
+    }
+
+    function sendDone({ idx = null, interrupt = false, reason = null } = {}) {
+      return new Promise((resolve) => {
+        if (!socket || !socket.connected) {
+          addSystem("尚未连接云端，无法发送 done", "error");
+          resolve(null);
+          return;
+        }
+        const finalIdx = idx == null ? (lastIdx >= 0 ? lastIdx + 1 : -1) : idx;
+        const finalReason = reason || (interrupt ? "client interrupt" : "client done");
+        if (finalIdx >= 0 && reservedDoneIdx.has(finalIdx)) {
+          addSystem(
+            `done 已跳过 idx=${finalIdx} interrupt=${interrupt}` +
+            (finalReason ? ` reason=${finalReason}` : "") +
+            "（该 idx 已发送过 done，避免重复占用）"
+          );
+          resolve({ skipped: true, idx: finalIdx, interrupt });
+          return;
+        }
+        if (finalIdx >= 0) reservedDoneIdx.add(finalIdx);
+        socket.timeout(10000).emit(EVENT_DONE, { reason: finalReason, interrupt, idx: finalIdx }, (err, res) => {
+          if (err) {
+            if (finalIdx >= 0) reservedDoneIdx.delete(finalIdx);
+            addSystem(`done 失败: ${String(err)}`, "error");
+            resolve(null);
+            return;
+          }
+          pushDoneLog(finalIdx, interrupt, finalReason, res);
+          resolve(res);
+        });
+      });
+    }
+
+    async function sendStartupDone() {
+      if (startupDoneSent) return;
+      startupDoneSent = true;
+      await sendDone({ idx: -1, interrupt: true, reason: "startup" });
+      addSystem("启动已发送 done(interrupt=true) 清残留会话");
+    }
+
+    function maybeAutoDone(traceId) {
+      if (!chkAutoDone.checked) return;
+      if (autoDoneForTrace === traceId) return;
+      autoDoneForTrace = traceId;
+      const idx = lastIdx >= 0 ? lastIdx + 1 : 0;
+      sendDone({ idx, interrupt: false, reason: "auto done" });
+    }
+
+    function handleChatResponse(raw) {
+      const inner = unwrapEnvelope(raw);
+      if (!inner) {
+        if (raw && typeof raw === "object" && "code" in raw && !successCode(raw.code)) {
+          addSystem(`chat:response error: ${raw.msg || raw.code}`, "error");
+          if (voiceTurn && !voiceTurn.finalized) {
+            setVoiceBubbleText(raw.msg || "识别失败", false);
+            voiceTurn.finalized = true;
+            syncHoldTalkButton();
+          }
+        }
+        return;
+      }
+
+      rememberDialogIdFromPayload(inner);
+      rememberDialogIdFromPayload(raw);
+
+      const role = inner.role;
+      const respId = inner.id;
+      const flag = inner.flag;
+      const isEnd = Number(flag) === FLAG_END;
+
+      if (role === "user") {
+        applyUserEcho(inner);
+        return;
+      }
+
+      if (role === "assistant") {
+        const t = getTrace();
+        if (t && t.isLatencyMetricsPacket(inner)) {
+          const saved = t.saveCloudLatency(inner, activeTraceId);
+          if (saved && saved.traceId) {
+            const file = traceFileName(saved.traceId);
+            const el = addSystem("latency 已写入 ");
+            const link = document.createElement("a");
+            link.className = "trace-file";
+            link.dataset.traceId = saved.traceId;
+            link.href = buildTraceViewUrl(saved.traceId);
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = `/oem/trace/${file}`;
+            link.title = "在 trace_view 打开该文件";
+            el.appendChild(link);
+          }
+          return;
+        }
+        if (voiceTurn && !voiceTurn.ended) {
+          return;
+        }
+        const tid = String(activeTraceId || respId || "unknown");
+        const el = ensureAssistantBubble(tid);
+        const body = el.querySelector(".body");
+        const delta = extractText(inner);
+        const prev = body.textContent || "";
+        body.textContent = delta ? `${prev}${delta}` : prev;
+        if (typeof inner.idx === "number" && inner.idx > lastIdx) {
+          lastIdx = inner.idx;
+          updateMeta();
+        }
+        if (window.MockAssistantAudio) {
+          window.MockAssistantAudio.onAssistantPacket(tid, { isEnd });
+        }
+        if (isEnd) {
+          const label = el.querySelector(".label");
+          if (!label.textContent.endsWith(" · END")) {
+            label.textContent += " · END";
+          }
+          handleBenchmarkAnswer(tid, body.textContent || "");
+          maybeAutoDone(tid);
+        }
+        scrollBottom();
+        return;
+      }
+
+      addSystem(`[chat:${role}] ${JSON.stringify(inner).slice(0, 200)}`);
+    }
+
+    function renderClarification(requestId, questions, ack) {
+      if (clarifyCards.has(requestId)) return;
+
+      const card = document.createElement("div");
+      card.className = "card clarify";
+      card.dataset.requestId = requestId;
+
+      const title = document.createElement("h3");
+      title.innerHTML = `<span class="badge clarify">澄清</span> <span>requestId: ${escapeHtml(requestId.slice(0, 8))}…</span>`;
+      const countdown = document.createElement("span");
+      countdown.className = "countdown";
+      title.appendChild(countdown);
+      card.appendChild(title);
+
+      /** @type {{question: string, input: HTMLInputElement}[]} */
+      const qStates = [];
+      (Array.isArray(questions) ? questions : []).forEach((q, qi) => {
+        const block = document.createElement("div");
+        block.className = "q-block";
+        const qt = document.createElement("div");
+        qt.className = "q-text";
+        qt.textContent = `${qi + 1}. ${q.question || ""}`;
+        block.appendChild(qt);
+
+        const opts = document.createElement("div");
+        opts.className = "opts";
+        const input = document.createElement("input");
+        input.className = "q-custom";
+        input.type = "text";
+        input.placeholder = "可点选项，或在此自由输入…";
+        input.autocomplete = "off";
+
+        (q.options || []).forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = opt;
+          btn.onclick = () => {
+            opts.querySelectorAll("button").forEach((b) => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            input.value = opt;
+            input.focus();
+          };
+          opts.appendChild(btn);
+        });
+
+        input.addEventListener("input", () => {
+          const val = input.value.trim();
+          opts.querySelectorAll("button").forEach((b) => b.classList.toggle("selected", b.textContent === val));
+        });
+
+        block.appendChild(opts);
+        block.appendChild(input);
+        card.appendChild(block);
+        qStates.push({ question: q.question || `问题${qi + 1}`, input });
+      });
+
+      const actions = document.createElement("div");
+      actions.className = "clarify-actions";
+      const btnCancel = document.createElement("button");
+      btnCancel.type = "button";
+      btnCancel.className = "btn-cancel";
+      btnCancel.textContent = "取消澄清";
+      btnCancel.onclick = () => finishClarification(requestId, { cancel: "true" });
+      const btnConfirm = document.createElement("button");
+      btnConfirm.type = "button";
+      btnConfirm.className = "btn-confirm";
+      btnConfirm.textContent = "确认提交";
+      btnConfirm.onclick = () => {
+        const answers = [];
+        for (let i = 0; i < qStates.length; i++) {
+          const item = qStates[i];
+          const value = item.input.value.trim();
+          if (!value) {
+            addSystem(`请先回答第 ${i + 1} 题`, "error");
+            item.input.focus();
+            return;
+          }
+          answers.push(`${i + 1}. ${item.question}：${value}`);
+        }
+        finishClarification(requestId, { selected: answers.join("\n") });
+      };
+      actions.appendChild(btnCancel);
+      actions.appendChild(btnConfirm);
+      card.appendChild(actions);
+
+      messagesEl.appendChild(card);
+      scrollBottom();
+
+      let remain = CLARIFICATION_TIMEOUT_SEC;
+      countdown.textContent = `${remain}s`;
+      const timer = setInterval(() => {
+        remain -= 1;
+        countdown.textContent = remain > 0 ? `${remain}s` : "已超时";
+        if (remain <= 0) clearInterval(timer);
+      }, 1000);
+
+      clarifyCards.set(requestId, { el: card, timer, ack });
+    }
+
+    function finishClarification(requestId, payload) {
+      const entry = clarifyCards.get(requestId);
+      if (!entry) return;
+      if (entry.el.dataset.submitted === "1") return;
+      entry.el.dataset.submitted = "1";
+      entry.el.querySelectorAll("button").forEach((b) => (b.disabled = true));
+      entry.el.querySelectorAll("input").forEach((i) => (i.disabled = true));
+      if (entry.timer) clearInterval(entry.timer);
+      if (typeof entry.ack === "function") {
+        entry.ack(payload);
+      }
+      if (!entry.el.querySelector(".answered")) {
+        const answered = document.createElement("div");
+        answered.className = "answered";
+        answered.textContent = payload.cancel === "true" ? "已取消澄清" : `已回答：\n${payload.selected || ""}`;
+        entry.el.appendChild(answered);
+      }
+    }
+
+    function renderTriggerCard(syncData) {
+      const inner = unwrapEnvelope(syncData) || syncData || {};
+      const card = document.createElement("div");
+      card.className = "card trigger";
+      const title = document.createElement("h3");
+      title.innerHTML =
+        `<span class="badge trigger">Trigger</span>` +
+        `<span>${escapeHtml(inner.type || "?")} · ${escapeHtml(inner.name || "")}</span>`;
+      card.appendChild(title);
+      const pre = document.createElement("pre");
+      pre.className = "xml";
+      pre.textContent = tokensToXml(inner.funcTokens) || "(空 XML)";
+      card.appendChild(pre);
+      messagesEl.appendChild(card);
+      scrollBottom();
+    }
+
+    function handleRelayServerToWeb(data, ack) {
+      const relay = data && typeof data === "object" && "code" in data ? data.data : data;
+      if (!relay || typeof relay !== "object") {
+        if (typeof ack === "function") ack({ selected: "" });
+        return;
+      }
+      if (relay.type !== TYPE_CLARIFICATION) {
+        if (window.MockRoutineAck && window.MockRoutineAck.handleRoutineRelay(data, ack, {
+          document,
+          messagesEl,
+          addSystem,
+          scrollBottom,
+          successRate: (currentConfig.mockRoutineRate ?? 50) / 100,
+        })) {
+          return;
+        }
+        addSystem(`?? relay:server-to-web type=${relay.type || "unknown"}`);
+        if (typeof ack === "function") ack({ ok: true });
+        return;
+      }
+      const payload = relay.data || {};
+      const requestId = String(payload.requestId || "");
+      if (!requestId) {
+        if (typeof ack === "function") ack({ selected: "" });
+        return;
+      }
+      renderClarification(requestId, payload.questions || [], ack);
+    }
+
+    function updateConnectedState(nextConnected, message) {
+      if (!nextConnected) {
+        joined = false;
+        currentSocketId = "";
+      }
+      updateStatusUi();
+      if (message) addSystem(message, nextConnected ? "system" : "error");
+    }
+
+    async function connectCloud() {
+      if (socket) {
+        try { socket.disconnect(); } catch (_) {}
+      }
+      joined = false;
+      startupDoneSent = false;
+      activeTraceId = null;
+      autoDoneForTrace = null;
+      reservedDoneIdx.clear();
+      currentSocketId = "";
+      lastIdx = -1;
+      if (window.MockAssistantAudio) window.MockAssistantAudio.sealAll();
+      updateStatusUi();
+
+      const msgPacket = normalizeMsgPacket(currentConfig.msgPacket);
+      try {
+        await ensureSocketIoClient(msgPacket);
+      } catch (e) {
+        updateConnectedState(false, `加载 Socket.IO 客户端失败（msgPacket=${msgPacket}）: ${e}`);
+        return;
+      }
+
+      socket = window.io(`${currentConfig.cloudSockApi.replace(/\/$/, "")}${buildNamespace()}`, {
+        path: buildSocketPath(),
+        auth: buildAuth(),
+        transports: getTransports(),
+        timeout: 10000,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 3000,
+      });
+      addSystem(`正在连接云端（msgPacket=${msgPacket}）…`);
+
+      socket.on("connect", () => {
+        currentSocketId = socket.id || "";
+        updateConnectedState(true);
+      });
+
+      socket.on("disconnect", (reason) => {
+        voiceWantTalk = false;
+        voiceUploading = false;
+        voiceGen += 1;
+        if (window.MockVoicePtt && window.MockVoicePtt.isActive()) window.MockVoicePtt.stop();
+        if (voiceTurn && !voiceTurn.finalized) {
+          voiceTurn.ended = true;
+          setVoiceBubbleText("连接已断开", false);
+          voiceTurn.finalized = true;
+        }
+        voiceStarting = false;
+        syncHoldTalkButton();
+        updateConnectedState(false, `云端断开: ${reason}`);
+      });
+
+      socket.on("connect_error", (err) => {
+        const msg = err && err.message ? err.message : String(err);
+        addSystem(`connect_error: ${msg}`, "error");
+        updateConnectedState(false);
+      });
+
+      socket.on(EVENT_JOIN, async (data) => {
+        joined = true;
+        updateStatusUi();
+        addSystem(`join:response ${JSON.stringify(data)}`);
+        await sendStartupDone();
+      });
+
+      socket.on(EVENT_ERROR_GLOBAL, (data) => {
+        const code = data && typeof data === "object" ? data.code : "";
+        const msg = data && typeof data === "object" ? data.msg : String(data);
+        addSystem(`error:global${code ? ` [${code}]` : ""}: ${msg}`, "error");
+      });
+
+      socket.on(EVENT_CHAT_RESPONSE, (data) => {
+        handleChatResponse(data);
+      });
+
+      socket.on(EVENT_CHAT_AUDIO_RESPONSE, (...args) => {
+        if (window.MockAssistantAudio) {
+          window.MockAssistantAudio.handleAudio(activeTraceId, args);
+        }
+      });
+
+      socket.on(EVENT_TRIGGER_SYNC, (data, ack) => {
+        // 云端 pushServerToClientEvent 带 ACK（10s），必须立刻回，否则会 error:global「发送trigger ack超时」
+        try {
+          if (typeof ack === "function") {
+            ack({ code: 200, msg: "success", data: true });
+          }
+        } catch (e) {
+          addSystem(`trigger:sync ACK 失败: ${e}`, "error");
+        }
+        addSystem("收到 trigger:sync，已 ACK");
+        renderTriggerCard(data);
+      });
+
+      socket.on(EVENT_SERVER_TO_WEB, (data, ack) => {
+        handleRelayServerToWeb(data, ack);
+      });
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, options);
+      const data = await response.json();
+      if (data && typeof data === "object" && "code" in data) {
+        if (!successCode(data.code)) {
+          throw new Error(data.msg || `HTTP ${response.status}`);
+        }
+        return data.data;
+      }
+      if (!response.ok) {
+        throw new Error(data?.msg || data?.message || `HTTP ${response.status}`);
+      }
+      return data;
+    }
+
+    async function fetchPromptText(kind) {
+      const res = await requestJson(promptRequestUrl(kind));
+      if (typeof res === "string") return res;
+      return JSON.stringify(res, null, 2);
+    }
+
+    async function fetchPrompt(kind) {
+      const isTrigger = kind === "get-trigger";
+      const btn = isTrigger ? btnPromptTrigger : btnPrompt;
+      const title = isTrigger ? "完整 Trigger 提示词" : "完整聊天提示词";
+      const url = promptRequestUrl(kind);
+      btn.disabled = true;
+      try {
+        const markdown = await fetchPromptText(kind);
+        openPromptModal(title, url, markdown);
+      } catch (e) {
+        addSystem(`${title}拉取失败: ${e}`, "error");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    /** 加载样本 JSON，按 key 填入分类编辑器（来自 Redis coco-cloud-ts:device-prompt:L002） */
+    async function loadDevicePromptSample() {
+      btnLoadDevicePrompt.disabled = true;
+      try {
+        const resp = await fetch(SAMPLE_DEVICE_PROMPTS_URL, { cache: "no-store" });
+        if (!resp.ok) throw new Error(`加载样本失败 HTTP ${resp.status}`);
+        const payload = await resp.json();
+        if (payload?.type === "update" || payload?.type === "delete") {
+          devicePromptSyncType.value = payload.type;
+        }
+        setDevicePromptItems(payload?.data || []);
+        devicePromptUrl.textContent = SAMPLE_DEVICE_PROMPTS_URL;
+        devicePromptUrl.title = SAMPLE_DEVICE_PROMPTS_URL;
+        devicePromptPath.textContent = `样本 ${devicePromptItems.length} 条 · ${SAMPLE_DEVICE_PROMPTS_URL}`;
+        devicePromptPath.title = devicePromptItems.map((item) => item.key).join(", ");
+        addSystem(`已加载设备提示词样本 ${devicePromptItems.length} 条，可按 key 分类编辑`);
+      } catch (e) {
+        addSystem(`加载设备提示词样本失败: ${e}`, "error");
+      } finally {
+        btnLoadDevicePrompt.disabled = false;
+      }
+    }
+
+    /**
+     * 将当前各 key 的编辑内容组装为 JSON，发送 device:prompt:sync
+     */
+    async function sendDevicePrompt() {
+      if (!socket || !socket.connected || !joined) {
+        addSystem("请先连接并加入云端房间后再同步设备提示词", "error");
+        return;
+      }
+      btnSendDevicePrompt.disabled = true;
+      try {
+        const payload = buildDevicePromptPayload();
+        const keys = payload.data.map((item) => item.key);
+        socket.emit(EVENT_DEVICE_PROMPT_SYNC, payload);
+        devicePromptPath.textContent = `已发送 ${payload.data.length} 条 · SN=${currentConfig.deviceSn}`;
+        devicePromptPath.title = keys.join(", ");
+        addSystem(
+          `已发送 ${EVENT_DEVICE_PROMPT_SYNC}（type=${payload.type}, count=${payload.data.length}）\n` +
+            `设备 SN=${currentConfig.deviceSn}\nkeys: ${keys.join(", ")}`
+        );
+      } catch (e) {
+        addSystem(`同步设备提示词失败: ${e}`, "error");
+      } finally {
+        btnSendDevicePrompt.disabled = false;
+      }
+    }
+
+    /** 把云端 SystemPromptInnerRespVO 树转成可编辑 markdown（对齐 PromptManager 取首根再 toMarkdown） */
+    function peTreeToMarkdown(nodes) {
+      if (!Array.isArray(nodes) || !nodes.length) return "";
+      const toMd = (node) => {
+        let md = typeof node.contentCn === "string" ? node.contentCn : "";
+        if (md && !md.endsWith("\n")) md += "\n";
+        for (const child of node.children || []) {
+          const childMd = toMd(child);
+          if (childMd) md += (md.endsWith("\n") ? "" : "\n") + childMd;
+        }
+        return md;
+      };
+      return toMd(nodes[0]).trim() + "\n";
+    }
+
+    function normalizeLocalCacheContent(content) {
+      if (typeof content === "string") return content;
+      if (Array.isArray(content)) return peTreeToMarkdown(content);
+      if (content == null) return "";
+      return JSON.stringify(content, null, 2);
+    }
+
+    async function loadLocalCache() {
+      const type = localCacheType.value === "trigger" ? "trigger" : "master";
+      const url = localCacheRequestUrl(type);
+      btnLoadLocalCache.disabled = true;
+      try {
+        const data = await requestJson(url);
+        const editorText = normalizeLocalCacheContent(data.content);
+        localCacheEditor.value = editorText;
+        localCacheUrl.textContent = url;
+        localCacheUrl.title = url;
+        localCachePath.textContent =
+          `key=${data.key || "-"} · socketId=${data.socketId || currentSocketId || "全局默认"} · ${data.found ? "已加载覆盖" : "系统正文回填"}`;
+        localCachePath.title = data.key || "";
+        addSystem(
+          `已加载静态提示词 type=${type} productId=${data.productId} socketId=${data.socketId || currentSocketId || "全局默认"} ` +
+          `found=${!!data.found} len=${editorText.length}`
+        );
+      } catch (e) {
+        addSystem(`静态提示词加载失败: ${e}`, "error");
+      } finally {
+        btnLoadLocalCache.disabled = false;
+      }
+    }
+
+    async function saveLocalCache() {
+      const url = `${buildHttpBase()}/prompt/local-cache`;
+      const body = {
+        productId: Number(localCacheProductId.value) || currentConfig.productId || 7,
+        type: localCacheType.value === "trigger" ? "trigger" : "master",
+        content: localCacheEditor.value,
+      };
+      if (currentSocketId) body.socketId = currentSocketId;
+      btnSaveLocalCache.disabled = true;
+      try {
+        const data = await requestJson(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        localCacheUrl.textContent = url;
+        localCacheUrl.title = url;
+        localCachePath.textContent =
+          `已保存 · ${data.length ?? body.content.length} 字 · key=${data.key || "-"} · socketId=${data.socketId || currentSocketId || "全局默认"}`;
+        localCachePath.title = data.key || "";
+        addSystem(`静态提示词已写入云端内存缓存 type=${body.type} productId=${body.productId} socketId=${data.socketId || currentSocketId || "全局默认"}`);
+      } catch (e) {
+        addSystem(`静态提示词保存失败: ${e}`, "error");
+      } finally {
+        btnSaveLocalCache.disabled = false;
+      }
+    }
+
+    function parseCsvLine(line) {
+      const cells = [];
+      let cell = "";
+      let quoted = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        const next = line[i + 1];
+        if (quoted) {
+          if (ch === '"' && next === '"') { cell += '"'; i += 1; }
+          else if (ch === '"') quoted = false;
+          else cell += ch;
+        } else if (ch === '"') quoted = true;
+        else if (ch === ',') { cells.push(cell); cell = ""; }
+        else cell += ch;
+      }
+      cells.push(cell);
+      return cells;
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = "";
+      let quoted = false;
+      const normalized = String(text || "").replace(/^\uFEFF/, "");
+      for (let i = 0; i < normalized.length; i++) {
+        const ch = normalized[i];
+        const next = normalized[i + 1];
+        if (ch === '"') {
+          row += ch;
+          if (quoted && next === '"') { row += next; i += 1; }
+          else quoted = !quoted;
+        } else if ((ch === "\n" || ch === "\r") && !quoted) {
+          if (ch === "\r" && next === "\n") i += 1;
+          if (row.trim()) rows.push(parseCsvLine(row));
+          row = "";
+        } else row += ch;
+      }
+      if (row.trim()) rows.push(parseCsvLine(row));
+      return rows;
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? "");
+      return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+
+    function decodeTextWithEncoding(buffer, encoding, fatal = false) {
+      return new TextDecoder(encoding, { fatal }).decode(buffer);
+    }
+
+    async function readCsvFileText(file) {
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+        return decodeTextWithEncoding(buffer, "utf-8").replace(/^﻿/, "");
+      }
+      if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+        return decodeTextWithEncoding(buffer, "utf-16le").replace(/^﻿/, "");
+      }
+      if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+        return decodeTextWithEncoding(buffer, "utf-16be").replace(/^﻿/, "");
+      }
+      try {
+        return decodeTextWithEncoding(buffer, "utf-8", true).replace(/^﻿/, "");
+      } catch (_) {
+        try {
+          return decodeTextWithEncoding(buffer, "gb18030").replace(/^﻿/, "");
+        } catch (e) {
+          return decodeTextWithEncoding(buffer, "gbk").replace(/^﻿/, "");
+        }
+      }
+    }
+
+    function updateBenchmarkUi() {
+      const total = benchmark.questions.length;
+      const done = benchmark.results.filter((item) => item.status === "done").length;
+      benchmarkPanel.classList.toggle("open", benchmark.running || total > 0);
+      benchmarkProgress.max = Math.max(total, 1);
+      benchmarkProgress.value = done;
+      btnBenchmarkStop.disabled = !benchmark.running;
+      btnBenchmarkExport.disabled = benchmark.results.length === 0;
+      if (!total) benchmarkStatus.textContent = "Idle";
+      else if (benchmark.running) benchmarkStatus.textContent = `Running: ${done}/${total}, current #${benchmark.index + 1}`;
+      else benchmarkStatus.textContent = `Stopped/Done: ${done}/${total}`;
+    }
+
+    function startBenchmark(questions) {
+      benchmark.running = true;
+      benchmark.questions = questions;
+      benchmark.results = questions.map((question, i) => ({ index: i + 1, question, answer: "", status: "pending" }));
+      benchmark.index = -1;
+      benchmark.waiting = false;
+      benchmark.currentTraceId = "";
+      updateBenchmarkUi();
+      addSystem(`Benchmark imported ${questions.length} questions. Asking one by one and collecting replies.`);
+      sendNextBenchmarkQuestion();
+    }
+
+    function sendNextBenchmarkQuestion() {
+      if (!benchmark.running || benchmark.waiting) return;
+      benchmark.index += 1;
+      if (benchmark.index >= benchmark.questions.length) {
+        benchmark.running = false;
+        benchmark.index = Math.max(benchmark.questions.length - 1, 0);
+        updateBenchmarkUi();
+        addSystem("Benchmark completed. You can export the result CSV.");
+        return;
+      }
+      const question = benchmark.questions[benchmark.index];
+      benchmark.results[benchmark.index].status = "running";
+      benchmark.waiting = true;
+      updateBenchmarkUi();
+      benchmark.currentTraceId = sendChat(question, { keepInput: true }) || "";
+    }
+
+    function handleBenchmarkAnswer(traceId, answer) {
+      if (!benchmark.running || !benchmark.waiting) return;
+      const item = benchmark.results[benchmark.index];
+      if (!item || item.status !== "running") return;
+      item.answer = answer || "";
+      item.status = "done";
+      item.traceId = traceId || benchmark.currentTraceId || "";
+      benchmark.waiting = false;
+      updateBenchmarkUi();
+      setTimeout(sendNextBenchmarkQuestion, 250);
+    }
+
+    async function importBenchmarkCsv(file) {
+      if (!file) return;
+      try {
+        const text = await readCsvFileText(file);
+        const rows = parseCsv(text);
+        if (!rows.length) throw new Error("CSV is empty");
+        const header = (rows[0][0] || "").trim().toLowerCase();
+        const dataRows = header === "question" ? rows.slice(1) : rows;
+        const questions = dataRows.map((row) => (row[0] || "").trim()).filter(Boolean);
+        if (!questions.length) throw new Error("No usable question found in first column");
+        startBenchmark(questions);
+      } catch (e) {
+        addSystem(`Benchmark import failed: ${e}`, "error");
+      } finally {
+        benchmarkFile.value = "";
+      }
+    }
+
+    function stopBenchmark() {
+      if (!benchmark.running) return;
+      benchmark.running = false;
+      benchmark.waiting = false;
+      const item = benchmark.results[benchmark.index];
+      if (item && item.status === "running") item.status = "stopped";
+      updateBenchmarkUi();
+      addSystem("Benchmark stopped. Collected results can still be exported.", "error");
+    }
+
+    function exportBenchmarkCsv() {
+      if (!benchmark.results.length) return;
+      const rows = [["index", "question", "answer", "status", "traceId"]]
+        .concat(benchmark.results.map((item) => [item.index, item.question, item.answer, item.status, item.traceId || ""]));
+      const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\r\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `benchmark-results-${new Date().toISOString().replace(/[:.]/g, "-")}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function currentDialogId() {
+      return (dialogIdEl && dialogIdEl.value ? dialogIdEl.value : "").trim();
+    }
+
+    function persistDialogId(value) {
+      const id = String(value || "").trim();
+      if (dialogIdEl) dialogIdEl.value = id;
+      if (currentConfig.dialogId === id) {
+        updateMeta();
+        return;
+      }
+      currentConfig.dialogId = id;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentConfig));
+      updateMeta();
+    }
+
+    function rememberDialogIdFromPayload(payload) {
+      if (!payload || typeof payload !== "object") return;
+      const id = payload.dialogId || payload.dialog_id;
+      if (typeof id === "string" && id.trim()) persistDialogId(id);
+    }
+
+    function sendChat(textOverride, options = {}) {
+      const text = typeof textOverride === "string" ? textOverride.trim() : inputEl.value.trim();
+      if (!text) return "";
+      if (!socket || !socket.connected || !joined) {
+        addSystem("尚未连接并 join 云端，无法发送 chat", "error");
+        return;
+      }
+      if (voiceTurn && !voiceTurn.finalized) {
+        voiceWantTalk = false;
+        voiceUploading = false;
+        voiceGen += 1;
+        if (window.MockVoicePtt && window.MockVoicePtt.isActive()) window.MockVoicePtt.stop();
+        voiceTurn.ended = true;
+        voiceTurn.finalized = true;
+        setVoiceBubbleText("已取消（改为文字发送）", false);
+        syncHoldTalkButton();
+      }
+
+      const traceId = uuidv7();
+      activeTraceId = traceId;
+      lastIdx = -1;
+      autoDoneForTrace = null;
+      reservedDoneIdx.clear();
+      if (window.MockAssistantAudio) window.MockAssistantAudio.sealAll();
+      updateMeta();
+
+      const body = buildChatBody({ traceId, end: true, text });
+      if (options.keepInput) delete body.dialogId;
+
+      emitChat(body);
+
+      const el = document.createElement("div");
+      el.className = "bubble user";
+      el.textContent = text;
+      el.title = body.dialogId ? `dialogId=${body.dialogId}` : "新对话（无 dialogId）";
+      messagesEl.appendChild(el);
+      addTraceLine(traceId);
+      scrollBottom();
+      if (!options.keepInput) inputEl.value = "";
+      inputEl.focus();
+      return traceId;
+    }
+
+    function resetConfig() {
+      saveConfig({ ...DEFAULTS });
+    }
+
+    function setAuthTokenHint(text, kind) {
+      authTokenHint.textContent = text || "";
+      authTokenHint.classList.toggle("ok", kind === "ok");
+      authTokenHint.classList.toggle("error", kind === "error");
+    }
+
+    async function fillTestappUserToken() {
+      const httpApi = (cfgTestappHttpApi.value || currentConfig.testappHttpApi || "").trim().replace(/\/$/, "");
+      if (!httpApi) {
+        setAuthTokenHint("请先填写 testapp 鉴权 HTTP 地址", "error");
+        return;
+      }
+      const url = `${httpApi}/app-api/member/auth/email-login`;
+      btnFillTestappToken.disabled = true;
+      setAuthTokenHint(`正在登录 ${TESTAPP_EMAIL_LOGIN.email} …`);
+      try {
+        const data = await requestJson(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "tenant-id": "1",
+          },
+          body: JSON.stringify(TESTAPP_EMAIL_LOGIN),
+        });
+        const token = data && data.accessToken ? String(data.accessToken).trim() : "";
+        if (!token) throw new Error("响应缺少 accessToken");
+        cfgAuthToken.value = token;
+        setAuthTokenHint(`已填入 userToken（userId=${data.userId ?? "?"}）`, "ok");
+      } catch (e) {
+        setAuthTokenHint(`登录失败: ${e.message || e}`, "error");
+      } finally {
+        btnFillTestappToken.disabled = false;
+      }
+    }
+
+    function saveConfigFromForm() {
+      saveConfig({
+        deviceSn: cfgDeviceSn.value.trim(),
+        productId: Number(cfgProductId.value) || 7,
+        cloudSockApi: cfgSockApi.value.trim(),
+        cloudHttpApi: cfgHttpApi.value.trim(),
+        testappHttpApi: cfgTestappHttpApi.value.trim(),
+        traceApi: normalizeTraceApi(cfgTraceApi.value.trim()),
+        apiPath: cfgApiPath.value.trim() || "/coco-cloud-ts",
+        transports: cfgTransports.value.trim() || "websocket,polling",
+        msgPacket: normalizeMsgPacket(cfgMsgPacket.value),
+        authToken: cfgAuthToken.value.trim(),
+        defaultProvider: cfgProvider.value.trim(),
+        defaultModel: cfgModel.value.trim(),
+        dialogId: currentDialogId(),
+        mockRoutineRate: Math.min(100, Math.max(0, Number(cfgMockRoutineRate.value) || 50)),
+        autoDone: chkAutoDone.checked,
+        appEnableAudio: !!currentConfig.appEnableAudio,
+      });
+      closeConfigModal();
+      addSystem("连接配置已保存，正在重连云端…");
+      connectCloud();
+    }
+
+    chkAutoDone.checked = !!currentConfig.autoDone;
+    syncAppAudioButton();
+    bindComboBoxes();
+    syncConfigForm();
+    {
+      const urlDialogId = new URLSearchParams(location.search).get("dialogId");
+      dialogIdEl.value = (urlDialogId || currentConfig.dialogId || "").trim();
+    }
+    updateMeta();
+
+    btnConfig.onclick = openConfigModal;
+    btnReconnect.onclick = () => {
+      addSystem("正在重连云端…");
+      connectCloud();
+    };
+    btnBenchmark.onclick = () => benchmarkFile.click();
+    benchmarkFile.onchange = () => importBenchmarkCsv(benchmarkFile.files && benchmarkFile.files[0]);
+    btnBenchmarkStop.onclick = stopBenchmark;
+    btnBenchmarkExport.onclick = exportBenchmarkCsv;
+    updateBenchmarkUi();
+    btnPrompt.onclick = () => fetchPrompt("get");
+    btnPromptTrigger.onclick = () => fetchPrompt("get-trigger");
+    btnSyncDevicePrompt.onclick = () => {
+      openDevicePromptModal();
+      if (!devicePromptItems.length) loadDevicePromptSample();
+    };
+    btnSyncDeviceState.onclick = () => {
+      openDeviceStateModal();
+      if (!deviceStateItems.length) loadDeviceStateSample();
+    };
+    btnLocalCache.onclick = () => {
+      openLocalCacheModal();
+      if (!localCacheEditor.value) loadLocalCache();
+    };
+    btnSaveConfig.onclick = saveConfigFromForm;
+    btnFillTestappToken.onclick = fillTestappUserToken;
+    btnResetConfig.onclick = resetConfig;
+    btnCloseConfig.onclick = closeConfigModal;
+    btnClosePrompt.onclick = closePromptModal;
+    btnToggleRaw.onclick = () => {
+      showRaw = !showRaw;
+      renderPromptBody();
+    };
+    btnCloseLocalCache.onclick = closeLocalCacheModal;
+    btnLoadLocalCache.onclick = loadLocalCache;
+    btnSaveLocalCache.onclick = saveLocalCache;
+    btnCloseDevicePrompt.onclick = closeDevicePromptModal;
+    btnLoadDevicePrompt.onclick = loadDevicePromptSample;
+    btnAddDevicePromptKey.onclick = addDevicePromptKey;
+    btnDelDevicePromptKey.onclick = deleteActiveDevicePromptKey;
+    btnSendDevicePrompt.onclick = sendDevicePrompt;
+    btnCloseDeviceState.onclick = closeDeviceStateModal;
+    btnLoadDeviceState.onclick = loadDeviceStateSample;
+    btnAddDeviceState.onclick = addDeviceStateItem;
+    btnDelDeviceState.onclick = deleteActiveDeviceState;
+    btnSendDeviceState.onclick = sendDeviceState;
+    btnSend.onclick = sendChat;
+    if (btnUploadWav && wavFile) {
+      btnUploadWav.onclick = () => wavFile.click();
+      wavFile.addEventListener("change", () => {
+        const file = wavFile.files && wavFile.files[0];
+        wavFile.value = "";
+        sendWavFile(file);
+      });
+    }
+    if (btnSampleWav) btnSampleWav.onclick = sendSampleWav;
+    if (btnHoldTalk) {
+      btnHoldTalk.addEventListener("pointerdown", (e) => {
+        if (e.button != null && e.button !== 0) return;
+        e.preventDefault();
+        try { btnHoldTalk.setPointerCapture(e.pointerId); } catch (_) {}
+        requestVoiceStart();
+      });
+      btnHoldTalk.addEventListener("pointerup", (e) => {
+        if (e.button != null && e.button !== 0) return;
+        requestVoiceStop();
+      });
+      btnHoldTalk.addEventListener("pointercancel", () => requestVoiceStop());
+      btnHoldTalk.addEventListener("lostpointercapture", () => {
+        if (voiceWantTalk) requestVoiceStop();
+      });
+      btnHoldTalk.addEventListener("contextmenu", (e) => e.preventDefault());
+    }
+    btnNewDialog.onclick = () => {
+      persistDialogId("");
+    };
+    dialogIdEl.addEventListener("change", () => persistDialogId(dialogIdEl.value));
+    btnDone.onclick = () => sendDone({ interrupt: false });
+    btnAppAudio.onclick = () => {
+      currentConfig.appEnableAudio = !currentConfig.appEnableAudio;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentConfig));
+      syncAppAudioButton();
+      updateMeta();
+      addSystem(`chat 入参 appEnableAudio=${currentConfig.appEnableAudio}（下一条消息生效）`);
+    };
+    chkAutoDone.onchange = () => {
+      currentConfig.autoDone = chkAutoDone.checked;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentConfig));
+      addSystem(chkAutoDone.checked ? "已开启自动 done（END 后自动发送）" : "已关闭自动 done（仅手动）");
+    };
+    localCacheType.onchange = () => loadLocalCache();
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+
+    [configModal, promptModal, localCacheModal, devicePromptModal, deviceStateModal].forEach((modal) => {
+      modal.addEventListener("click", (e) => {
+        if (e.target !== modal) return;
+        if (modal === configModal) closeConfigModal();
+        else if (modal === promptModal) closePromptModal();
+        else if (modal === localCacheModal) closeLocalCacheModal();
+        else if (modal === devicePromptModal) closeDevicePromptModal();
+        else closeDeviceStateModal();
+      });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (configModal.classList.contains("open")) closeConfigModal();
+        else if (deviceStateModal.classList.contains("open")) closeDeviceStateModal();
+        else if (devicePromptModal.classList.contains("open")) closeDevicePromptModal();
+        else if (localCacheModal.classList.contains("open")) closeLocalCacheModal();
+        else if (promptModal.classList.contains("open")) closePromptModal();
+        return;
+      }
+      if (e.code !== "Space" && e.key !== " ") return;
+      if (e.repeat) {
+        if (voiceWantTalk) e.preventDefault();
+        return;
+      }
+      if (!canSpacePtt(e.target)) return;
+      e.preventDefault();
+      requestVoiceStart();
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.code !== "Space" && e.key !== " ") return;
+      if (!voiceWantTalk && !(window.MockVoicePtt && window.MockVoicePtt.isActive())) return;
+      e.preventDefault();
+      requestVoiceStop();
+    });
+    window.addEventListener("blur", () => {
+      if (voiceWantTalk || (window.MockVoicePtt && window.MockVoicePtt.isActive())) requestVoiceStop();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && (voiceWantTalk || (window.MockVoicePtt && window.MockVoicePtt.isActive()))) {
+        requestVoiceStop();
+      }
+    });
+
+    if (window.MockAssistantAudio) {
+      window.MockAssistantAudio.attach({
+        messagesEl,
+        scrollBottom,
+        ensureBubble: ensureAssistantBubble,
+        getActiveTraceId: () => activeTraceId,
+      });
+    }
+
+    if (getTrace()) {
+      getTrace().onStatus(() => updateMeta());
+      getTrace().probeWriter().then(() => updateMeta());
+    }
+
+    connectCloud();
+  </script>
+</body>
+</html>

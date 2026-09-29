@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "target": "ES2024",
+        "module": "commonjs",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "outDir": "dist",
+        "rootDir": ".",
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitAny": false,
+        "skipLibCheck": true,
+        "paths": {
+            "@config/*": ["./src/config/*"],
+            "@utils/*": ["./src/utils/*"],
+            "@interface/*": ["./src/interfaces/*"],
+            "@service/*": ["./src/services/*"],
+            "@controller/*": ["./src/controllers/*"],
+            "@plugins/*": ["./src/plugins/*"],
+            "@stt/*": ["./src/stt/*"],
+            "@socketio/*": ["./src/socketio/*"]
+        }
+    },
+    "include": ["src", "test"],
+    "exclude": ["node_modules", "**/*.spec.ts", "dist", "logs"]
+}

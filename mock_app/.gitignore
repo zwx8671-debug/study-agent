@@ -1,0 +1,6 @@
+.venv/
+.idea
+__pycache__
+.mock_app_http.pid
+.mock_app_http.log
+logs/

@@ -1,0 +1,51 @@
+{
+    "index": {
+        "hello": "Hello",
+        "welcome": "Welcome",
+        "goodbye": "Goodbye",
+        "success": "Success",
+        "error": "Error",
+        "loading": "Loading...",
+        "save": "Save",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "delete": "Delete",
+        "edit": "Edit",
+        "create": "Create",
+        "update": "Update"
+    },
+    "user": {
+        "login": "Login",
+        "logout": "Logout",
+        "register": "Register",
+        "profile": "Profile",
+        "settings": "Settings",
+        "username": "Username",
+        "password": "Password",
+        "email": "Email"
+    },
+    "agent": {
+        "agent": "Agent",
+        "agents": "Agents",
+        "create_agent": "Create Agent",
+        "edit_agent": "Edit Agent",
+        "delete_agent": "Delete Agent",
+        "agent_name": "Agent Name",
+        "agent_description": "Agent Description"
+    },
+    "message": {
+        "message": "Message",
+        "messages": "Messages",
+        "send_message": "Send Message",
+        "receive_message": "Receive Message",
+        "message_content": "Message Content"
+    },
+    "errors": {
+        "not_found": "Not Found",
+        "unauthorized": "Unauthorized",
+        "forbidden": "Forbidden",
+        "internal_server_error": "Internal Server Error",
+        "bad_request": "Bad Request",
+        "validation_error": "Validation Error"
+    }
+}
