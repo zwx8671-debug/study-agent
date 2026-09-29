@@ -1,0 +1,10 @@
+<prompt>
+  <markdown path="xl.md"/>
+  <title>
+  hello
+  </title>
+  <content>
+  content
+  </content>
+  <http sn="61"/>
+</prompt>

@@ -1,0 +1,625 @@
+# GitLab CI/CD Pipeline for COCO-CLOUD-TS
+
+variables:
+  # 项目配置
+  PROJECT_NAME: coco-cloud-ts
+  # 火山引擎容器镜像服务配置
+  REGISTRY_URL: yuewa-repo-cn-guangzhou.cr.volces.com
+  IMAGE_NAME: yuewa-repo-cn-guangzhou.cr.volces.com/coco/coco-cloud-ts
+  
+  # ArgoCD 配置
+  ARGOCD_SERVER: 118.145.81.146
+  ARGOCD_APP_DEV: coco-cloud-ts-helm-dev
+  ARGOCD_APP_PROD: coco-cloud-ts-helm-prod
+  
+  # Kubernetes 配置
+  KUBE_NAMESPACE_DEV: coco-dev
+  KUBE_NAMESPACE_PROD: coco-prod
+
+  # Git配置 - 忽略SSL证书校验
+  GIT_CREDENTIAL_STORE: "$CI_PROJECT_DIR/.git-credentials"
+  GIT_SSL_NO_VERIFY: "true"
+  GIT_STRATEGY: none
+  GIT_CHECKOUT: "false"
+  
+  # 全局SSL忽略配置
+  CURL_INSECURE: "--insecure"
+  # 额外的SSL忽略环境变量
+  PYTHONHTTPSVERIFY: "0"
+  REQUESTS_CA_BUNDLE: ""
+  CURL_CA_BUNDLE: ""
+
+  # GitLab配置 - 直接指定地址
+  # 使用 CI_JOB_TOKEN 进行认证（推荐方式）
+  GITLAB_USER: gitlab-ci-token
+  GITLAB_TOKEN: $CI_JOB_TOKEN
+  GITLAB_HOST: "192.168.10.214:8000"
+  GITLAB_REPO_PATH: $CI_PROJECT_PATH
+  
+  # 备用PAT配置（如果需要使用PAT）
+  GITLAB_PAT: $CUSTOM_GITLAB_PAT
+  
+  # 自定义Git URL配置 - 覆盖GitLab默认地址
+  GIT_DEPTH: 0
+  GIT_CLEAN_FLAGS: -ffdx
+  GIT_FETCH_EXTRA_FLAGS: --prune --prune-tags
+
+# Git认证配置模板 - 使用YAML锚点兼容GitLab v10
+.git_auth_config: &git_auth_config
+  before_script:
+    # 基础Git配置
+    - git config --global user.email "gitlab-ci@leapwatt.com"
+    - git config --global user.name "GitLab CI"
+    # SSL配置 - 兼容GitLab v10
+    - git config --global http.sslVerify false
+    - git config --global https.sslVerify false
+    - git config --global http.sslCAInfo ""
+    - git config --global https.sslCAInfo ""
+    # 环境变量配置
+    - export GIT_SSL_NO_VERIFY=true
+    - export CURL_INSECURE="--insecure"
+    - export PYTHONHTTPSVERIFY=0
+    - export REQUESTS_CA_BUNDLE=""
+    - export CURL_CA_BUNDLE=""
+    - echo "SSL certificate verification disabled"
+    # 环境变量检查 - 简化以兼容GitLab v10
+    - echo "Checking environment variables..."
+    - echo "GITLAB_HOST=${GITLAB_HOST}"
+    - echo "GITLAB_REPO_PATH=${GITLAB_REPO_PATH}"
+    - echo "CI_PROJECT_PATH=${CI_PROJECT_PATH}"
+    # Git认证配置 - 优先使用CI_JOB_TOKEN（GitLab v10兼容）
+    - echo "Configuring Git authentication..."
+    - |
+      if [ -n "$CI_JOB_TOKEN" ]; then
+        echo "Using CI_JOB_TOKEN for authentication"
+        git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/".insteadOf "https://${GITLAB_HOST}/"
+        export AUTH_URL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/${GITLAB_REPO_PATH}.git"
+        echo "AUTH_URL configured with CI_JOB_TOKEN"
+      elif [ -n "$CUSTOM_GITLAB_PAT" ]; then
+        echo "Using Personal Access Token for authentication"
+        git config --global url."https://oauth2:${CUSTOM_GITLAB_PAT}@${GITLAB_HOST}/".insteadOf "https://${GITLAB_HOST}/"
+        export AUTH_URL="https://oauth2:${CUSTOM_GITLAB_PAT}@${GITLAB_HOST}/${GITLAB_REPO_PATH}.git"
+        echo "AUTH_URL configured with PAT"
+      else
+        echo "No authentication token available, using basic URL"
+        export AUTH_URL="https://${GITLAB_HOST}/${GITLAB_REPO_PATH}.git"
+        echo "AUTH_URL=${AUTH_URL}"
+      fi
+    - echo "Git authentication configured successfully"
+
+# 定义构建阶段
+stages:
+  - test-connectivity
+  - clone
+  - validate
+  - build
+  - security-scan
+  - test
+  - deploy-dev
+  - deploy-staging
+  - deploy-prod
+  - cleanup
+
+# 缓存配置
+cache:
+  paths:
+    - .cache/pip
+    - .cache/pip-wheelhouse
+
+# 移除全局 before_script，改为在每个任务中配置
+
+# 测试GitLab连通性
+test:connectivity:
+  <<: *git_auth_config
+  stage: test-connectivity
+  script:
+    - echo "Testing GitLab server connectivity..."
+    - echo "Target GitLab Host:$GITLAB_HOST"
+    - echo "Repository Path:$GITLAB_REPO_PATH"
+    - echo "📋 Testing HTTPS connectivity:"
+    - curl --insecure -I https://$GITLAB_HOST || echo "⚠️ HTTPS connection failed"
+    - echo "📋 Testing HTTP connectivity:"
+    - curl -I http://$GITLAB_HOST || echo "⚠️ HTTP connection failed"
+    - echo "📋 Testing Git clone URL:"
+    - echo "Repository ${GITLAB_HOST}/${GITLAB_REPO_PATH}"
+    - |
+      if [ -n "$CI_JOB_TOKEN" ]; then
+        echo "Will use CI_JOB_TOKEN for authentication"
+      elif [ -n "$GITLAB_PAT" ]; then
+        echo "Will use Personal Access Token for authentication"
+      else
+        echo "No authentication token configured"
+      fi
+    - echo "✅ Connectivity test completed"
+
+# 手动克隆代码并验证配置
+clone:custom-git:
+  <<: *git_auth_config
+  stage: clone
+  dependencies:
+    - test:connectivity
+  script:
+    - echo "🔧 Preparing workspace and cloning code..."
+    - echo "Current directory $(pwd)"
+    - echo "Directory contents before cleanup"
+    - ls -la || true
+    - echo "🧹 Cleaning workspace thoroughly..."
+    - rm -rf .git || true
+    - rm -rf * || true
+    - rm -rf .* 2>/dev/null || true
+    - find . -mindepth 1 -delete 2>/dev/null || true
+    - echo "Directory contents after cleanup"
+    - ls -la || true
+    - echo "🔧 Cloning repository..."
+    - echo "Repository URL ${GITLAB_HOST}/${GITLAB_REPO_PATH}"
+    - GIT_SSL_NO_VERIFY=true git clone $AUTH_URL .
+    - git checkout $CI_COMMIT_SHA
+    - git log --oneline -5
+    - echo "✅ Code cloned and verified successfully"
+
+# 使用Docker构建镜像 - 适配Shell executor
+build:docker-image:
+  stage: build
+  before_script:
+    - echo "🔧 Preparing Docker build environment..."
+    - docker --version
+    - echo "Registry URL $REGISTRY_URL"
+    - echo "Image Name $IMAGE_NAME"
+    - echo "Registry User $VOLCES_REGISTRY_USER"
+    - |
+      if [ -n "$VOLCES_REGISTRY_USER" ] && [ -n "$VOLCES_REGISTRY_PASSWORD" ]; then
+        echo "Logging into Volces Container Registry..."
+        echo "$VOLCES_REGISTRY_PASSWORD" | docker login -u "$VOLCES_REGISTRY_USER" --password-stdin "$REGISTRY_URL"
+      else
+        echo "Using pre-configured Docker registry credentials or skipping login"
+        docker info | grep -A 5 "Registry" || echo "No registry info available"
+      fi
+  script:
+    - echo "🏗️ Building Docker image..."
+    - |
+      # 设置镜像标签
+      # 确保 SHORT_SHA 存在
+      SHORT_SHA=${CI_COMMIT_SHORT_SHA:-$(echo $CI_COMMIT_SHA | cut -c1-8)}
+      echo "Branch: $CI_COMMIT_BRANCH"
+      echo "Ref Name: $CI_COMMIT_REF_NAME"
+      echo "Short SHA: $SHORT_SHA"
+      echo "Ref Slug: $CI_COMMIT_REF_SLUG"
+      
+      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+        TAGS="latest $CI_COMMIT_SHA"
+        if [ -n "$CI_COMMIT_TAG" ]; then
+          TAGS="$TAGS $CI_COMMIT_TAG"
+        fi
+      elif [ "$CI_COMMIT_REF_NAME" == "dev" ] || echo "$CI_COMMIT_REF_NAME" | grep -q "dev"; then
+        TAGS="latest dev-latest dev-$SHORT_SHA"
+      else
+        TAGS="branch-$CI_COMMIT_REF_SLUG-$SHORT_SHA"
+      fi
+      echo "Image tags: $TAGS"
+    
+    - |
+      # 构建Docker镜像
+      sudo docker build \
+        --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+        --build-arg VCS_REF=$CI_COMMIT_SHA \
+        --build-arg VERSION=${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA} \
+        -t $IMAGE_NAME:$CI_COMMIT_SHA \
+        . || docker build \
+        --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+        --build-arg VCS_REF=$CI_COMMIT_SHA \
+        --build-arg VERSION=${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA} \
+        -t $IMAGE_NAME:$CI_COMMIT_SHA \
+        .
+    
+    - |
+      # 推送主要标签
+      # echo "📤 Pushing $IMAGE_NAME:$CI_COMMIT_SHA"
+      # sudo docker push $IMAGE_NAME:$CI_COMMIT_SHA || docker push $IMAGE_NAME:$CI_COMMIT_SHA
+    
+    - |
+      # 推送额外标签
+      for tag in $TAGS; do
+        if [ "$tag" != "$CI_COMMIT_SHA" ]; then
+          echo "📤 Tagging and pushing $IMAGE_NAME:$tag"
+          sudo docker tag $IMAGE_NAME:$CI_COMMIT_SHA $IMAGE_NAME:$tag || docker tag $IMAGE_NAME:$CI_COMMIT_SHA $IMAGE_NAME:$tag
+          sudo docker push $IMAGE_NAME:$tag || docker push $IMAGE_NAME:$tag
+        fi
+      done
+    
+    - echo "✅ Image built and pushed successfully"
+  after_script:
+    - echo "🧹 Cleaning up local images..."
+    - sudo docker rmi $IMAGE_NAME:$CI_COMMIT_SHA || docker rmi $IMAGE_NAME:$CI_COMMIT_SHA || true
+    - |
+      # 清理额外标签
+      SHORT_SHA=${CI_COMMIT_SHORT_SHA:-$(echo $CI_COMMIT_SHA | cut -c1-8)}
+      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+        TAGS="latest"
+        if [ -n "$CI_COMMIT_TAG" ]; then
+          TAGS="$TAGS $CI_COMMIT_TAG"
+        fi
+      elif [ "$CI_COMMIT_REF_NAME" == "dev" ] || echo "$CI_COMMIT_REF_NAME" | grep -q "dev"; then
+        TAGS="latest dev-latest dev-$SHORT_SHA"
+      else
+        TAGS="branch-$CI_COMMIT_REF_SLUG-$SHORT_SHA"
+      fi
+      echo "Cleaning up tags: $TAGS"
+      for tag in $TAGS; do
+        echo "Removing image: $IMAGE_NAME:$tag"
+        sudo docker rmi $IMAGE_NAME:$tag || docker rmi $IMAGE_NAME:$tag || true
+      done
+  dependencies:
+    - clone:custom-git
+  only:
+    - master
+    - tags
+  retry: 2
+
+# 部署到开发环境 - 自动更新Helm values并触发ArgoCD同步
+deploy:development:
+  stage: deploy-dev
+  before_script:
+    # 基础Git配置
+    - git config --global user.email "gitlab-ci@leapwatt.com"
+    - git config --global user.name "GitLab CI"
+    # SSL配置 - 兼容GitLab v10
+    - git config --global http.sslVerify false
+    - git config --global https.sslVerify false
+    - git config --global http.sslCAInfo ""
+    - git config --global https.sslCAInfo ""
+    # 环境变量配置
+    - export GIT_SSL_NO_VERIFY=true
+    - export CURL_INSECURE="--insecure"
+    - export PYTHONHTTPSVERIFY=0
+    - export REQUESTS_CA_BUNDLE=""
+    - export CURL_CA_BUNDLE=""
+    - echo "SSL certificate verification disabled"
+    # 环境变量检查 - 简化以兼容GitLab v10
+    - echo "Checking environment variables..."
+    - echo "GITLAB_HOST=${GITLAB_HOST}"
+    - echo "GITLAB_REPO_PATH=${GITLAB_REPO_PATH}"
+    - echo "CI_PROJECT_PATH=${CI_PROJECT_PATH}"
+    # Git认证配置 - 优先使用CI_JOB_TOKEN（GitLab v10兼容）
+    - echo "Configuring Git authentication..."
+    - |
+      if [ -n "$CI_JOB_TOKEN" ]; then
+        echo "Using CI_JOB_TOKEN for authentication"
+        git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/".insteadOf "https://${GITLAB_HOST}/"
+        export AUTH_URL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/${GITLAB_REPO_PATH}.git"
+        echo "AUTH_URL configured with CI_JOB_TOKEN"
+      elif [ -n "$CUSTOM_GITLAB_PAT" ]; then
+        echo "Using Personal Access Token for authentication"
+        git config --global url."https://oauth2:${CUSTOM_GITLAB_PAT}@${GITLAB_HOST}/".insteadOf "https://${GITLAB_HOST}/"
+        export AUTH_URL="https://oauth2:${CUSTOM_GITLAB_PAT}@${GITLAB_HOST}/${GITLAB_REPO_PATH}.git"
+        echo "AUTH_URL configured with PAT"
+      else
+        echo "No authentication token available, using basic URL"
+        export AUTH_URL="https://${GITLAB_HOST}/${GITLAB_REPO_PATH}.git"
+        echo "AUTH_URL=${AUTH_URL}"
+      fi
+    - echo "Git authentication configured successfully"
+    - echo "🚀 Preparing automated deployment to development..."
+  script:
+    - echo "📦 Updating Helm values with new image tag..."
+    - |
+      # 获取当前commit的短SHA
+      SHORT_SHA=${CI_COMMIT_SHORT_SHA:-$(echo $CI_COMMIT_SHA | cut -c1-8)}
+      NEW_TAG="dev-$SHORT_SHA"
+      echo "Target image tag: $NEW_TAG"
+      
+      # 检查values-dev.yaml文件是否存在
+      if [ ! -f "helm/coco-cloud-ts/values-dev.yaml" ]; then
+        echo "❌ Error: helm/coco-cloud-ts/values-dev.yaml not found"
+        exit 1
+      fi
+      
+      # 备份原文件
+      cp helm/coco-cloud-ts/values-dev.yaml helm/coco-cloud-ts/values-dev.yaml.backup
+      
+      # 更新values-dev.yaml中的image.tag
+      sed -i "s/^  tag:.*/  tag: \"$NEW_TAG\"/" helm/coco-cloud-ts/values-dev.yaml
+      
+      # 验证修改是否成功
+      if ! grep -q "tag: \"$NEW_TAG\"" helm/coco-cloud-ts/values-dev.yaml; then
+        echo "❌ Error: Failed to update image tag in values-dev.yaml"
+        echo "Restoring backup..."
+        mv helm/coco-cloud-ts/values-dev.yaml.backup helm/coco-cloud-ts/values-dev.yaml
+        exit 1
+      fi
+      
+      echo "✅ Updated image tag in values-dev.yaml:"
+      grep "tag:" helm/coco-cloud-ts/values-dev.yaml
+      
+      # 配置Git用户信息（确保提交成功）
+      git config user.email "gitlab-ci@leapwatt.com"
+      git config user.name "GitLab CI"
+      
+      # 检查是否有变更需要提交
+      if git diff --quiet helm/coco-cloud-ts/values-dev.yaml; then
+        echo "⚠️ No changes detected in values-dev.yaml, skipping commit"
+        exit 0
+      fi
+      
+      # 提交更改到Git仓库
+      git add helm/coco-cloud-ts/values-dev.yaml
+      git commit -m "CI: Update image tag to $NEW_TAG for commit $SHORT_SHA [skip ci]"
+      
+      # 显示Git状态信息用于调试
+      echo "📋 Git repository status:"
+      git status --porcelain
+      echo "📋 Current branch/HEAD:"
+      git branch -a
+      echo "📋 Recent commits:"
+      git log --oneline -3
+      
+      # 检查可用的认证方式
+      echo "📋 Checking available authentication methods..."
+      echo "CI_JOB_TOKEN: ${CI_JOB_TOKEN:+[SET]}"
+      echo "CUSTOM_GITLAB_PAT: ${CUSTOM_GITLAB_PAT:+[SET]}"
+      echo "GITLAB_HOST: ${GITLAB_HOST}"
+      echo "GITLAB_REPO_PATH: ${GITLAB_REPO_PATH}"
+      
+      PUSH_SUCCESS=false
+      
+      # 方法1: 优先使用PAT进行Git推送
+      if [ -n "$CUSTOM_GITLAB_PAT" ]; then
+        echo "🔑 Using Personal Access Token for Git push..."
+        PAT_AUTH_URL="https://oauth2:${CUSTOM_GITLAB_PAT}@${GITLAB_HOST}/${GITLAB_REPO_PATH}.git"
+        echo "📤 Attempting Git push with PAT..."
+        
+        # 尝试直接推送
+        if git push "$PAT_AUTH_URL" HEAD:dev; then
+          echo "✅ Successfully pushed using PAT"
+          PUSH_SUCCESS=true
+        else
+          echo "⚠️ PAT push failed, trying with temporary branch..."
+          TEMP_BRANCH="temp-deploy-$(date +%s)"
+          if git checkout -b "$TEMP_BRANCH"; then
+            if git push "$PAT_AUTH_URL" "$TEMP_BRANCH":dev; then
+              echo "✅ Successfully pushed using PAT with temporary branch"
+              PUSH_SUCCESS=true
+              git checkout --detach HEAD
+              git branch -D "$TEMP_BRANCH" || true
+            else
+              echo "❌ PAT push with temporary branch failed"
+              git checkout --detach HEAD
+              git branch -D "$TEMP_BRANCH" || true
+            fi
+          fi
+        fi
+      fi
+      
+      # 方法2: 备用方案 - 使用GitLab API直接更新文件
+      if [ "$PUSH_SUCCESS" = "false" ] && [ -n "$CUSTOM_GITLAB_PAT" ]; then
+        echo "🔄 Git push failed, trying GitLab API method..."
+        
+        # 获取当前文件内容的base64编码（Linux环境）
+         FILE_CONTENT=$(base64 -w 0 helm/coco-cloud-ts/values-dev.yaml)
+        
+        # 获取当前文件的SHA（用于更新）
+        echo "📋 Getting current file SHA from GitLab API..."
+        FILE_INFO=$(curl --insecure -s \
+          --header "PRIVATE-TOKEN: $CUSTOM_GITLAB_PAT" \
+          "https://${GITLAB_HOST}/api/v4/projects/${CI_PROJECT_ID}/repository/files/helm%2Fcoco-cloud-ts%2Fvalues-dev.yaml?ref=dev")
+        
+        if echo "$FILE_INFO" | grep -q "blob_id"; then
+          echo "📋 File found in repository, updating via API..."
+          
+          # 使用GitLab API更新文件
+          API_RESPONSE=$(curl --insecure -s -w "%{http_code}" \
+            --request PUT \
+            --header "PRIVATE-TOKEN: $CUSTOM_GITLAB_PAT" \
+            --header "Content-Type: application/json" \
+            --data "{
+              \"branch\": \"dev\",
+              \"content\": \"$FILE_CONTENT\",
+              \"commit_message\": \"CI: Update image tag to $NEW_TAG for commit $SHORT_SHA [skip ci]\",
+              \"encoding\": \"base64\"
+            }" \
+            "https://${GITLAB_HOST}/api/v4/projects/${CI_PROJECT_ID}/repository/files/helm%2Fcoco-cloud-ts%2Fvalues-dev.yaml")
+          
+          HTTP_CODE="${API_RESPONSE: -3}"
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Successfully updated file via GitLab API"
+            PUSH_SUCCESS=true
+          else
+            echo "❌ GitLab API update failed with HTTP code: $HTTP_CODE"
+            echo "Response: ${API_RESPONSE%???}"
+          fi
+        else
+          echo "❌ Could not get file information from GitLab API"
+          echo "API Response: $FILE_INFO"
+        fi
+      fi
+      
+      # 方法3: 最后尝试CI_JOB_TOKEN（如果前面都失败）
+      if [ "$PUSH_SUCCESS" = "false" ] && [ -n "$CI_JOB_TOKEN" ]; then
+        echo "🔄 Trying CI_JOB_TOKEN as last resort..."
+        if git push "$AUTH_URL" HEAD:dev; then
+          echo "✅ Successfully pushed using CI_JOB_TOKEN"
+          PUSH_SUCCESS=true
+        fi
+      fi
+      
+      if [ "$PUSH_SUCCESS" = "false" ]; then
+        echo "❌ All update methods failed. Deployment cannot continue."
+        echo "📋 Available tokens:"
+        echo "  - CUSTOM_GITLAB_PAT: ${CUSTOM_GITLAB_PAT:+[SET]}"
+        echo "  - CI_JOB_TOKEN: ${CI_JOB_TOKEN:+[SET]}"
+        echo "📋 Project ID: ${CI_PROJECT_ID}"
+        echo "📋 GitLab Host: ${GITLAB_HOST}"
+        exit 1
+      fi
+      
+      echo "✅ Helm values updated and pushed to repository successfully"
+      
+      # 清理备份文件
+      rm -f helm/coco-cloud-ts/values-dev.yaml.backup
+      
+      # 等待ArgoCD自动检测变更并同步
+      echo "⏳ Waiting for ArgoCD to detect changes and auto-sync (30 seconds)..."
+      sleep 30
+  environment:
+    name: development
+    url: https://118.145.81.146/coco-cloud-ts
+  only:
+    - dev
+    - feat-*
+  when: manual
+  allow_failure: true
+  retry: 2
+
+# 部署到预发布环境
+deploy:staging:
+  stage: deploy-staging
+  image: argoproj/argocd:v2.8.0
+  before_script:
+    - argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+  script:
+    - echo "🎭 Deploying to staging environment..."
+    - |
+      argocd app set coco-cloud-ts-helm-staging \
+        --helm-set image.tag=$CI_COMMIT_SHA \
+        --helm-set image.repository=$IMAGE_NAME
+    - argocd app sync coco-cloud-ts-helm-staging --prune
+    - argocd app wait coco-cloud-ts-helm-staging --timeout 600
+    - echo "✅ Staging deployment completed"
+  environment:
+    name: staging
+    url: https://coco-cloud-ts-staging.example.com
+  only:
+    - master
+  when: manual
+
+# 部署到生产环境
+deploy:production:
+  stage: deploy-prod
+  image: argoproj/argocd:v2.8.0
+  before_script:
+    - argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+  script:
+    - echo "🏭 Deploying to production environment..."
+    - |
+      # 对于生产环境，使用标签版本
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        IMAGE_TAG=$CI_COMMIT_TAG
+      else
+        IMAGE_TAG=$CI_COMMIT_SHA
+      fi
+    
+    - |
+      argocd app set $ARGOCD_APP_PROD \
+        --helm-set image.tag=$IMAGE_TAG \
+        --helm-set image.repository=$IMAGE_NAME
+    
+    - argocd app sync $ARGOCD_APP_PROD --prune
+    - argocd app wait $ARGOCD_APP_PROD --timeout 900
+    - echo "🎉 Production deployment completed successfully!"
+  environment:
+    name: production
+    url: https://dev.api.leapwatt.com/coco-cloud-ts
+  only:
+    - tags
+    - master
+  when: manual
+  retry: 1
+
+# 清理旧镜像
+cleanup:old-images:
+  stage: cleanup
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl jq
+    # 配置SSL忽略
+    - export CURL_INSECURE="--insecure"
+  script:
+    - echo "🧹 Cleaning up old Docker images..."
+    - |
+      # 使用 GitLab API 清理旧镜像，保留最近10个
+      if [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ]; then
+        echo "Cleaning up old images from registry..."
+        # 获取项目ID和镜像列表
+        PROJECT_ID=$(curl --insecure -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" "https://$CI_SERVER_HOST/api/v4/projects?search=$CI_PROJECT_NAME" | jq -r ".[] | select(.path_with_namespace == \"$CI_PROJECT_PATH\") | .id")
+        
+        if [ -n "$PROJECT_ID" ]; then
+          # 获取镜像标签列表并按时间排序
+          TAGS=$(curl --insecure -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" "https://$CI_SERVER_HOST/api/v4/projects/$PROJECT_ID/registry/repositories" | jq -r '.[].id' | head -1)
+          if [ -n "$TAGS" ]; then
+            REPO_ID=$TAGS
+            # 获取所有标签并按创建时间排序
+            ALL_TAGS=$(curl --insecure -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" "https://$CI_SERVER_HOST/api/v4/projects/$PROJECT_ID/registry/repositories/$REPO_ID/tags?per_page=100" | jq -r 'sort_by(.created_at) | reverse | .[].name')
+            COUNT=0
+            for TAG in $ALL_TAGS; do
+              COUNT=$((COUNT+1))
+              if [ $COUNT -gt 10 ]; then
+                echo "Deleting old tag: $TAG"
+                curl --insecure -s --request DELETE --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" "https://$CI_SERVER_HOST/api/v4/projects/$PROJECT_ID/registry/repositories/$REPO_ID/tags/$TAG"
+              fi
+            done
+          fi
+        fi
+      else
+        echo "Registry credentials not available, skipping cleanup"
+      fi
+  only:
+    - master
+  when: manual
+  allow_failure: true
+
+# 回滚生产环境（手动触发）
+rollback:production:
+  stage: deploy-prod
+  image: argoproj/argocd:v2.8.0
+  before_script:
+    - argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+  script:
+    - echo "⏪ Rolling back production deployment..."
+    - argocd app rollback $ARGOCD_APP_PROD
+    - argocd app wait $ARGOCD_APP_PROD --timeout 600
+    - echo "✅ Production rollback completed"
+  environment:
+    name: production
+    action: start
+  only:
+    - master
+  when: manual
+  allow_failure: false
+
+# 通知配置（可选）
+notify:success:
+  stage: cleanup
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - |
+      if [ "$CI_JOB_STATUS" == "success" ]; then
+        echo "🎉 Pipeline completed successfully!"
+        # 这里可以添加 Slack/钉钉/企业微信通知
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"Coco Cloud TS Service deployment successful!"}' \
+        #   $SLACK_WEBHOOK_URL
+      fi
+  only:
+    - master
+    - dev
+  when: on_success
+  allow_failure: true
+
+notify:failure:
+  stage: cleanup
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - |
+      echo "❌ Pipeline failed!"
+      # 这里可以添加失败通知
+      # curl -X POST -H 'Content-type: application/json' \
+      #   --data '{"text":"Coco Cloud TS Service deployment failed!"}' \
+      #   $SLACK_WEBHOOK_URL
+  only:
+    - master
+    - dev
+  when: on_failure
+  allow_failure: true

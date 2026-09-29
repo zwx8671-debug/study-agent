@@ -1,0 +1,1161 @@
+{
+    "structure": {
+        "sys": [
+            "ear_left",
+            "right_back_leg_thigh_root_motor",
+            "right_front_leg_thigh_root_motor",
+            "left_front_leg_thigh_root_motor",
+            "head_yaw",
+            "right_front_leg_knee_motor",
+            "head_pitch",
+            "left_back_leg_knee_motor",
+            "right_back_leg_knee_motor",
+            "left_back_leg_thigh_root_motor",
+            "ear_right",
+            "left_front_leg_knee_motor",
+            "body",
+            "face",
+            "ear",
+            "head",
+            "figure",
+            "bgm",
+            "sfx",
+            "vision",
+            "telnet"
+        ],
+        "user": ["wrapper"]
+    },
+    "structure_pe": {
+        "mcp": "",
+        "user": "",
+        "sys": "## 通用参数\n- duration：持续时间（秒，范围 [0,100]）\n  **注意**：每个 routine 的默认值可能不同（常见值：2.0 或 5.0），具体默认值请参考各 routine 的 XML 注释或函数定义\n- speed：速度百分比（范围 [0,100]）\n  **注意**：每个 routine 的默认值可能不同（常见值：80.0），具体默认值请参考各 routine 的 XML 注释\n- amplitude：幅度百分比（范围 [0,100]）\n  **注意**：每个 routine 的默认值可能不同（常见值：50.0），具体默认 值请参考各 routine 的 XML 注释\n- times：重复次数（正整数）\n  **注意**：每个 routine 的默认值可能不同（常见值：3），具体默认值请参考各 routine 的 XML 注释\n- emo：情绪枚举（见 FaceType）\n- reset：恢复默认状态\n## FaceType（通用情绪/表情枚举）\nFace/Ear/Head/Figure 共享同一组枚举数据类型 `FaceType`\n```\n[\n'wink', # 眨眼\n'wink_left', # 眨左眼\n'wink_right', # 眨右眼\n'suddenly_enlightened', # 恍然大悟\n'calm', # 平静\n'identifying', # 镜头识别\n'cold', # 冷\n'dislike', # 嫌弃\n'sick', # 生病\n'fear', # 害怕\n'hot', # 热\n'indifferent', # 冷漠\n'happy', # 有点开心\n'unhappy', # 有点不开心\n'dont_care', # 满不在乎\n'pitiable', # 可怜巴巴\n'sleep', # 闭眼睡\n'frustrated', # 微微沮丧\n'smile', # 微笑\n'surprise', # 惊喜\n'thinking', # 思考\n'cant_answer', # 无法回答\n'very_dislike', # 非常嫌弃\n'very_frustrated', # 非常沮丧\n'very_fear' # 非常害怕\n]\n```",
+        "sys.ear_left": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.ear_right": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.head_pitch": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.right_front_leg_thigh_root_motor": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.right_front_leg_knee_motor": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.left_front_leg_thigh_root_motor": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.left_front_leg_knee_motor": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.left_back_leg_thigh_root_motor": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.left_back_leg_knee_motor": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.right_back_leg_thigh_root_motor": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.right_back_leg_knee_motor": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "sys.head_yaw": "蜘蛛机器人身体动作：四肢和躯干相关动作",
+        "user.wrapper": "wrapper",
+        "sys.body": "",
+        "sys.face": "",
+        "sys.ear": "",
+        "sys.head": "",
+        "sys.figure": "",
+        "sys.bgm": "",
+        "sys.sfx": "",
+        "sys.vision": "视觉模块，建议调用后使用<REACT/>以观察视觉结果",
+        "sys.telnet": "用于连接telnet工具模块"
+    },
+    "structure_routines": {
+        "user": [
+            {
+                "id": "019b1261-fb5d-70f8-9509-b08ad0403ae9",
+                "name": "eyebot_connect",
+                "abstract": "<!--\n连接或者断开眼球机器人开启眼球跟随模式\n@param   enable 为true时表示打开，参数为false时关闭\nip：ip地址，不填使用默认ip\nport：端口，默认为10001\n-->\n<eyebot_connect enable=\"true\" ip=\"192.168.10.106\" port=\"10001\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afdf9-07b0-7bdc-abe3-1f1fd499b188",
+                    "key": "user",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb5b-7204-9489-4a498749d80f",
+                "name": "eyebot_command",
+                "abstract": "<!--\n命令控制模式（简化版：直接接收完整命令字符串，校验后下发）\n@param   command\n这个函数时，自动将眼球跟随模式关闭。\ncommand =“emotion type” 眼球机器人情绪表达type:normal,surprise,thinking,arrogant,nervous,shy,neutral,curious,playful,hesitant,fear,bored,calm,disgust,confident\n例：command =“emotion normal”\ncommand  =“eye control <tl> <bl> <tr> <br> <x> <Y> <time>”\ntl,bl,tr,br范围都在0到60，对应左上眼皮，左下眼皮，右上眼皮，右下眼皮；闭上眼睛时所有眼皮都为0，睁开眼皮到最大位置，所有眼皮都为60。x，Y对应眼球位置，范围都为-35到35。x左负右正，y上正下负。time为眼球和眼皮运动到对应位置的时间，单位ms。\n例：command   =“eye control 45 45 45 45 0 0 50”\n-->\n<eyebot_command/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afdf9-07b0-7bdc-abe3-1f1fd499b188",
+                    "key": "user",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb59-7047-80be-4b977896312d",
+                "name": "eyebot_follow_me",
+                "abstract": "<!--\n控制眼球机器人开启眼球跟随模式\n@param   enable 为true时表示开启，参数为false时关闭\n-->\n<eyebot_follow_me enable=\"true\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afdf9-07b0-7bdc-abe3-1f1fd499b188",
+                    "key": "user",
+                    "rank": 0
+                }
+            }
+        ],
+        "mcp": [
+            {
+                "id": "019b1261-fb57-72bf-bf75-3b131fef0ba7",
+                "name": "light_rgb",
+                "abstract": "<!--\n设置灯的颜色，通过rgb三原色参数，三个参数取值范围均为[0,255]\n@param id灯的ID\n@param red，红色，\n@param green，绿色\n@param blue蓝色\n-->\n<light_rgb red=\"255\" green=\"0\" blue=\"0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afdf2-434b-76f0-ae48-38c6cc3cf1a7",
+                    "key": "mcp",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb55-7a12-97be-166f489ff9d1",
+                "name": "light_effect",
+                "abstract": "<!--\n设置灯效\n@param id灯的ID\n@param effect 支持\"系统\",\"呼吸\",\"烛光\", \"流彩\", \"炫彩\"几种效果，默认为“系统”\n-->\n<light_effect effect=\"系统\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afdf2-434b-76f0-ae48-38c6cc3cf1a7",
+                    "key": "mcp",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb53-7a6a-9500-72fc03c5326c",
+                "name": "light_switch",
+                "abstract": "<!--\n开灯/关灯\n@param id灯的ID\n@param on true(开灯)，false（关灯）\n-->\n<light_switch on=\"true\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afdf2-434b-76f0-ae48-38c6cc3cf1a7",
+                    "key": "mcp",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.ear_left": [
+            {
+                "id": "019b1261-fb3b-7acc-a820-af0c06a04eac",
+                "name": "ear_left_reset",
+                "abstract": "<!--\n舵机重置：左耳朵\n-->\n<ear_left_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdb5-7262-baa9-130441e5b06d",
+                    "key": "ear_left",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb39-7587-b89f-45dedf6664a2",
+                "name": "ear_left_angle_control",
+                "abstract": "<!--\n舵机控制：左耳朵\n@param angle 角度范围[135,-90]\n-->\n<ear_left_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdb5-7262-baa9-130441e5b06d",
+                    "key": "ear_left",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.ear_right": [
+            {
+                "id": "019b1261-fb37-7f67-94c3-00f8595e62c0",
+                "name": "ear_right_reset",
+                "abstract": "<!--\n舵机重置：右耳朵\n-->\n<ear_right_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdb4-7d18-8aca-03ab5264fd1f",
+                    "key": "ear_right",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb35-7f3d-9b85-a930ab092132",
+                "name": "ear_right_angle_control",
+                "abstract": "<!--\n舵机控制：右耳朵\n@param angle 角度范围[135,-90]\n-->\n<ear_right_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdb4-7d18-8aca-03ab5264fd1f",
+                    "key": "ear_right",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.head_pitch": [
+            {
+                "id": "019b1261-fb33-7569-b780-240307b24b69",
+                "name": "head_pitch_reset",
+                "abstract": "<!--\n舵机重置：头部俯仰\n-->\n<head_pitch_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdb2-7a59-ab2f-a6ed5436c8fc",
+                    "key": "head_pitch",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb31-72ad-8b33-0631c68a6add",
+                "name": "head_pitch_angle_control",
+                "abstract": "<!--\n舵机控制：头部俯仰\n@param angle 角度范围[10,-35]\n-->\n<head_pitch_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdb2-7a59-ab2f-a6ed5436c8fc",
+                    "key": "head_pitch",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.right_front_leg_thigh_root_motor": [
+            {
+                "id": "019b1261-fb0d-7e56-88fc-e697db9af32d",
+                "name": "right_front_leg_thigh_root_motor_angle_control",
+                "abstract": "<!--\n舵机控制：右前腿\n@param angle 角度范围[45,-45]\n-->\n<right_front_leg_thigh_root_motor_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda0-75b0-b8f7-ae2ea966b613",
+                    "key": "right_front_leg_thigh_root_motor",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb0f-7653-a55d-3070e0f9d056",
+                "name": "right_front_leg_thigh_root_motor_reset",
+                "abstract": "<!--\n舵机重置：右前腿\n-->\n<right_front_leg_thigh_root_motor_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda0-75b0-b8f7-ae2ea966b613",
+                    "key": "right_front_leg_thigh_root_motor",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.right_front_leg_knee_motor": [
+            {
+                "id": "019b1261-fb11-74f1-9166-7dd858a835f6",
+                "name": "right_front_leg_knee_motor_angle_control",
+                "abstract": "<!--\n舵机控制：右前脚\n@param angle 角度范围[130,-40]\n-->\n<right_front_leg_knee_motor_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda2-7158-9105-952b3a9066fc",
+                    "key": "right_front_leg_knee_motor",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb13-770b-bf54-c6c23af608b9",
+                "name": "right_front_leg_knee_motor_reset",
+                "abstract": "<!--\n舵机重置：右前脚\n-->\n<right_front_leg_knee_motor_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda2-7158-9105-952b3a9066fc",
+                    "key": "right_front_leg_knee_motor",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.left_front_leg_thigh_root_motor": [
+            {
+                "id": "019b1261-fb15-719e-8c11-600fd7dda7d6",
+                "name": "left_front_leg_thigh_root_motor_angle_control",
+                "abstract": "<!--\n舵机控制：左前腿\n@param angle 角度范围[45,-45]\n-->\n<left_front_leg_thigh_root_motor_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda4-7282-8290-58074620df8d",
+                    "key": "left_front_leg_thigh_root_motor",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb17-77dc-8d5a-7b15aab96cde",
+                "name": "left_front_leg_thigh_root_motor_reset",
+                "abstract": "<!--\n舵机重置：左前腿\n-->\n<left_front_leg_thigh_root_motor_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda4-7282-8290-58074620df8d",
+                    "key": "left_front_leg_thigh_root_motor",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.left_front_leg_knee_motor": [
+            {
+                "id": "019b1261-fb19-7146-82e0-68a6a8f2ccbc",
+                "name": "left_front_leg_knee_motor_angle_control",
+                "abstract": "<!--\n舵机控制：左前脚\n@param angle 角度范围[130,-40]\n-->\n<left_front_leg_knee_motor_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda6-7867-b2dd-8d5a2d2531bf",
+                    "key": "left_front_leg_knee_motor",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb1b-7022-8de8-2af6356a34cf",
+                "name": "left_front_leg_knee_motor_reset",
+                "abstract": "<!--\n舵机重置：左前脚\n-->\n<left_front_leg_knee_motor_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda6-7867-b2dd-8d5a2d2531bf",
+                    "key": "left_front_leg_knee_motor",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.left_back_leg_thigh_root_motor": [
+            {
+                "id": "019b1261-fb1d-7100-9bb4-91bb6712dcd8",
+                "name": "left_back_leg_thigh_root_motor_angle_control",
+                "abstract": "<!--\n舵机控制：左后腿\n@param angle 角度范围[45,-45]\n-->\n<left_back_leg_thigh_root_motor_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda8-70ce-879c-c703ae1a54e6",
+                    "key": "left_back_leg_thigh_root_motor",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb1f-7915-9650-9f4e772e8462",
+                "name": "left_back_leg_thigh_root_motor_reset",
+                "abstract": "<!--\n舵机重置：左后腿\n-->\n<left_back_leg_thigh_root_motor_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bda8-70ce-879c-c703ae1a54e6",
+                    "key": "left_back_leg_thigh_root_motor",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.left_back_leg_knee_motor": [
+            {
+                "id": "019b1261-fb21-74e6-9eea-a7875591b106",
+                "name": "left_back_leg_knee_motor_angle_control",
+                "abstract": "<!--\n舵机控制：左后脚\n@param angle 角度范围[130,-40]\n-->\n<left_back_leg_knee_motor_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdaa-7e62-8750-49de19eb4ac3",
+                    "key": "left_back_leg_knee_motor",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb23-75e1-8605-0e4b66678cd7",
+                "name": "left_back_leg_knee_motor_reset",
+                "abstract": "<!--\n舵机重置：左后脚\n-->\n<left_back_leg_knee_motor_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdaa-7e62-8750-49de19eb4ac3",
+                    "key": "left_back_leg_knee_motor",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.right_back_leg_thigh_root_motor": [
+            {
+                "id": "019b1261-fb25-7578-8f29-fb40329fddda",
+                "name": "right_back_leg_thigh_root_motor_angle_control",
+                "abstract": "<!--\n舵机控制：右后腿\n@param angle 角度范围[45,-45]\n-->\n<right_back_leg_thigh_root_motor_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdac-7ce3-895b-49f81f4f4ff6",
+                    "key": "right_back_leg_thigh_root_motor",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb27-776f-b41f-d21a3128869c",
+                "name": "right_back_leg_thigh_root_motor_reset",
+                "abstract": "<!--\n舵机重置：右后腿\n-->\n<right_back_leg_thigh_root_motor_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdac-7ce3-895b-49f81f4f4ff6",
+                    "key": "right_back_leg_thigh_root_motor",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.right_back_leg_knee_motor": [
+            {
+                "id": "019b1261-fb29-7be2-b9b8-6d603fc01e89",
+                "name": "right_back_leg_knee_motor_angle_control",
+                "abstract": "<!--\n舵机控制：右后脚\n@param angle 角度范围[130,-40]\n-->\n<right_back_leg_knee_motor_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdae-7503-acd7-196c7963a73c",
+                    "key": "right_back_leg_knee_motor",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb2b-7bf4-a39c-9eaf497bcdec",
+                "name": "right_back_leg_knee_motor_reset",
+                "abstract": "<!--\n舵机重置：右后脚\n-->\n<right_back_leg_knee_motor_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdae-7503-acd7-196c7963a73c",
+                    "key": "right_back_leg_knee_motor",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.head_yaw": [
+            {
+                "id": "019b1261-fb2d-7a52-92c0-0195d15bb3ad",
+                "name": "head_yaw_angle_control",
+                "abstract": "<!--\n舵机控制：头部偏转\n@param angle 角度范围[85,-85]\n-->\n<head_yaw_angle_control angle=\"30.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdb0-79d4-af41-0002de28ea00",
+                    "key": "head_yaw",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fb2f-7888-b8a2-207a8e219b32",
+                "name": "head_yaw_reset",
+                "abstract": "<!--\n舵机重置：头部偏转\n-->\n<head_yaw_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019afe25-bdb0-79d4-af41-0002de28ea00",
+                    "key": "head_yaw",
+                    "rank": 0
+                }
+            }
+        ],
+        "user.wrapper": [
+            {
+                "id": "019b1261-fbd7-789a-a586-50fbb108d7b7",
+                "name": "calendar_v4_freebusy_list",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日历管理-查询主日历日程忙闲信息-调用该接口查询指定用户的主日历忙闲信息，或者查询指定会议室的忙闲信息\n@param body__include_external_calendar 是否包含绑定的三方日历中的日程。**取值**：- true（默认值）：包含- false：不包含 **默认值**：False\n@param body__only_busy 是否只查询忙碌日程信息。**取值**：- true（默认值）：是，查询结果不包含空闲日程。- false：否，查询结果包含空闲日程 **默认值**：False\n@param body__room_id 会议室 room_id。你可以调用[查询会议室列表]接口或者[搜索会议室]接口，获取相应会议室的 room_id。**注意**：user_id 与 room_id 需要二选一传入，如果同时传入则只生效 user_id **默认值**：''\n@param body__time_max 查询时段结束时间，[RFC 3339] date_time 格式。**注意**：time_min 与 time_max 之间的时间间隔不能大于 90 天 **默认值**：''\n@param body__time_min 查询时段开始时间，[RFC 3339] date_time 格式。**注意**：time_min 与 time_max 之间的时间间隔不能大于 90 天 **默认值**：''\n@param body__user_id 用户 ID，需要传入与查询参数 user_id_type 相匹配的 id。例如，`user_id_type=open_id` 时，需要传入用户的 open_id。了解用户 ID 参见[用户相关的 ID 概念]。**注意**：user_id 与 room_id 需要二选一传入，如果同时传入则只生效 user_id **默认值**：''\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_freebusy_list body__include_external_calendar=\"false\" body__only_busy=\"false\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fbd5-7f44-ba1f-2b64ca41c216",
+                "name": "calendar_v4_calendar_primary",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日历管理-查询主日历信息-调用该接口获取当前身份（应用或用户）的主日历信息\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_calendar_primary/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fbd3-7646-8055-523c21483654",
+                "name": "calendar_v4_calendarEvent_patch",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日程管理-更新日程-调用该接口以当前身份（应用或用户）更新指定日历上的一个日程，包括日程标题、描述、开始与结束时间、视频会议以及日程地点等信息\n@param body__end_time__date 结束时间，仅全天日程使用该字段，[RFC 3339] 格式，例如，2018-09-01。**注意**：该参数不能与 `timestamp` 同时指定 **默认值**：''\n@param body__end_time__timestamp 秒级时间戳，用于设置具体的结束时间。例如，1602504000 表示 2020/10/12 20:00:00（UTC +8 时区）。**注意**：该参数不能与 `date` 同时指定 **默认值**：''\n@param body__end_time__timezone 时区。使用 IANA Time Zone Database 标准，例如 Asia/Shanghai。- 全天日程时区固定为UTC +0- 非全天日程时区默认为 Asia/Shanghai **默认值**：''\n@param body__event_check_in__check_in_end_time__duration 相对于日程开始或者结束的偏移量(分钟)。- 目前取值只能为列表[0, 5, 15, 30, 60]之一，0表示立即开始。- 当time_type为before_event_start，duration不能取0 **默认值**：0\n@param body__event_check_in__check_in_end_time__time_type 偏移量(分钟)相对于的日程时间节点类型。 Options:before_event_start(BeforeEventStart 日程开始前),after_event_start(AfterEventStart 日程开始后),after_event_end(AfterEventEnd 日程结束后) **默认值**：'' Options:before_event_start, after_event_start, after_event_end\n@param body__event_check_in__check_in_start_time__duration 相对于日程开始或者结束的偏移量(分钟)。- 目前取值只能为列表[0, 5, 15, 30, 60]之一，0表示立即开始。- 当time_type为before_event_start，duration不能取0 **默认值**：0\n@param body__event_check_in__check_in_start_time__time_type 偏移量(分钟)相对于的日程时间节点类型。 Options:before_event_start(BeforeEventStart 日程开始前),after_event_start(AfterEventStart 日程开始后),after_event_end(AfterEventEnd 日程结束后) **默认值**：'' Options:before_event_start, after_event_start, after_event_end\n@param body__event_check_in__enable_check_in 是否启用日程签到 **默认值**：False\n@param body__event_check_in__need_notify_attendees 签到开始时是否自动发送签到通知给参与者 **默认值**：False\n@param body__location__address 地点地址 **默认值**：''\n@param body__location__latitude 地点坐标纬度信息。- 对于国内的地点，采用 GCJ-02 标准。- 对于海外的地点，采用 WGS84 标准 **默认值**：0\n@param body__location__longitude 地点坐标经度信息。- 对于国内的地点，采用 GCJ-02 标准。- 对于海外的地点，采用 WGS84 标准 **默认值**：0\n@param body__location__name 地点名称 **默认值**：''\n@param body__start_time__date 开始时间，仅全天日程使用该字段，[RFC 3339] 格式，例如，2018-09-01。**注意**：该参数不能与 `timestamp` 同时指定 **默认值**：''\n@param body__start_time__timestamp 秒级时间戳，用于设置具体的开始时间。例如，1602504000 表示 2020/10/12 20:00:00（UTC +8 时区）。**注意**：该参数不能与 `date` 同时指定 **默认值**：''\n@param body__start_time__timezone 时区。使用 IANA Time Zone Database 标准，例如 Asia/Shanghai。- 全天日程时区固定为UTC +0- 非全天日程时区默认为 Asia/Shanghai **默认值**：''\n@param body__vchat__meeting_settings__allow_attendees_start 是否允许日程参与者发起会议。**注意**：应用日历上操作日程时，该字段必须为 true，否则没有人能发起会议。**可选值有**：- true：允许- false：不允许**默认值**：空，表示不更新该字段 **默认值**：False\n@param body__vchat__meeting_settings__assign_hosts 通过用户 ID 指定主持人，ID 类型需和 user_id_type 保持一致。**注意**：- 仅日程组织者可以指定主持人。- 主持人不能是非用户身份。- 主持人不能是外部租户用户身份。- 在应用日历上操作日程时，不允许指定主持人 **默认值**：[]\n@param body__vchat__meeting_settings__auto_record 是否开启自动录制。**可选值有**：- true：开启- false：不开启**默认值**：空，表示不更新该字段 **默认值**：False\n@param body__vchat__meeting_settings__join_meeting_permission 设置入会范围。 Options:anyone_can_join(AnyOne 所有人可以加入会议),only_organization_employees(OnlySameOrganization 仅企业内用户可以加入会议),only_event_attendees(OnlyEventAttendees 仅日程参与者可以加入会议) **默认值**：'' Options:anyone_can_join, only_organization_employees, only_event_attendees\n@param body__vchat__meeting_settings__open_lobby 是否开启等候室。**可选值有**：- true：开启- false：不开启**默认值**：空，表示不更新该字段 **默认值**：False\n@param body__vchat__meeting_settings__owner_id 设置会议 owner 的用户 ID，ID 类型需和 user_id_type 保持一致。该参数需满足以下全部条件才会生效：- 应用身份（tenant_access_token）请求，且在应用日历上操作日程。- 首次将日程设置为 VC 会议时，才能设置owner。- owner 不能为非用户身份。- owner 不能为外部租户用户身份 **默认值**：''\n@param body__vchat__description 第三方视频会议文案。**默认值**：空，表示不更新该字段 **默认值**：''\n@param body__vchat__icon_type 第三方视频会议的 icon 类型。**默认值**：空，表示不更新该字段 Options:vc(飞书视频会议 icon),live(直播视频会议 icon),default(默认 icon) **默认值**：'' Options:vc, live, default\n@param body__vchat__meeting_url 视频会议 URL。**默认值**：空，表示不更新该字段 **默认值**：''\n@param body__vchat__vc_type 视频会议类型。如果无需视频会议，则必须传入 `no_meeting`。 Options:vc(飞书视频会议。取该类型时，vchat 内的其他字段均无效。),third_party(ThirdParty 第三方链接视频会议。取该类型时，仅生效 vchat 内的 icon_type、description、meeting_url 字段。),no_meeting(NoMeeting 无视频会议。取该类型时，vchat 内的其他字段均无效。),lark_live(LarkLive 飞书直播。该值用于客户端，不支持通过 API 调用，只读。),unknown(未知类型。该值用于客户端做兼容使用，不支持通过 API 调用，只读。) **默认值**：'' Options:vc, third_party, no_meeting, lark_live, unknown\n@param body__attachments 日程附件 **默认值**：[]\n@param body__attendee_ability 参与人权限。**默认值**：空，表示不更新该字段 Options:none(无法编辑日程、无法邀请其他参与人、无法查看参与人列表),can_see_others(CanSeeOthers 无法编辑日程、无法邀请其他参与人、可以查看参与人列表),can_invite_others(CanInviteOthers 无法编辑日程、可以邀请其他参与人、可以查看参与人列表),can_modify_event(CanModifyEvent 可以编辑日程、可以邀请其他参与人、可以查看参与人列表) **默认值**：'' Options:none, can_see_others, can_invite_others, can_modify_event\n@param body__color 日程颜色，取值通过颜色 RGB 值的 int32 表示。**注意**：- 该参数仅对当前身份生效。- 客户端展示时会映射到色板上最接近的一种颜色。- 取值为 0 或 -1 时，默认跟随日历颜色。**默认值**：空，表示不更新该字段 **默认值**：0\n@param body__description 日程描述。**注意**：目前 API 方式不支持编辑富文本描述。如果日程描述通过客户端编辑为富文本内容，则使用 API 更新描述会导致富文本格式丢失。**默认值**：空，表示不更新该字段 **默认值**：''\n@param body__free_busy_status 日程占用的忙闲状态，新建日程默认为 `busy`。**注意**：更新日程时如果修改了该参数值，则仅对当前身份生效。**默认值**：空，表示不更新该字段 Options:busy(忙碌),free(空闲) **默认值**：'' Options:busy, free\n@param body__need_notification 更新日程时，是否给日程参与人发送 Bot 通知。**默认值**：空，表示不更新该字段**可选值有**：- true：发送通知- false：不发送通知 **默认值**：False\n@param body__recurrence 重复日程的重复性规则，规则设置方式参考[rfc5545]。**注意**：- COUNT 和 UNTIL 不支持同时出现。- 预定会议室重复日程长度不得超过两年。**默认值**：空，表示不更新该字段 **默认值**：''\n@param body__reminders 日程提醒列表。不传值则表示不更新该字段 **默认值**：[]\n@param body__schemas 日程自定义信息，控制日程详情页的 UI 展示。不传值则表示不更新该字段 **默认值**：[]\n@param body__summary 日程标题。**默认值**：空，表示不更新该字段 **默认值**：''\n@param body__visibility 日程公开范围。**注意**：更新日程时如果修改了该参数值，则仅对当前身份生效。**默认值**：空，表示不更新该字段 Options:default(默认权限，即跟随日历权限，默认仅向他人显示是否忙碌),public(公开，显示日程详情),private(私密，仅自己可见详情) **默认值**：'' Options:default, public, private\n@param path__calendar_id 日程所在的日历 ID。ID 获取方式：- [创建共享日历]时，接口会返回日历 ID。- 调用[查询主日历信息]、[查询日历列表]或者[搜索日历]接口，获取所需的日历 ID。- **默认值**：''\n@param path__event_id 日程 ID。ID 获取方式：- [创建日程]时，接口会返回日程 ID。- 调用[获取日程列表]或者[搜索日程]接口，获取所需的日程 ID **默认值**：''\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_calendarEvent_patch body__event_check_in__check_in_end_time__duration=\"0.0\" body__event_check_in__check_in_start_time__duration=\"0.0\" body__event_check_in__enable_check_in=\"false\" body__event_check_in__need_notify_attendees=\"false\" body__location__latitude=\"0.0\" body__location__longitude=\"0.0\" body__vchat__meeting_settings__allow_attendees_start=\"false\" body__vchat__meeting_settings__auto_record=\"false\" body__vchat__meeting_settings__open_lobby=\"false\" body__color=\"0.0\" body__need_notification=\"false\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fbd1-7653-9b2b-716d8568abda",
+                "name": "calendar_v4_calendarEvent_instanceView",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日程管理-查询日程视图-调用该接口以用户身份查询指定日历下的日程视图。与[获取日程列表]不同的是，当前接口会按照重复日程的重复性规则展开成多个日程实例（instance），并根据查询的时间区间返回相应的日程实例信息\n@param path__calendar_id 日历 ID。关于日历 ID 可参见[日历 ID 说明] **默认值**：''\n@param query__end_time 结束时间，Unix 时间戳，单位为秒。该参数与 start_time 用于设置查询的时间范围。**注意**：start_time 与 end_time 之间的时间区间需要小于 40 天 **默认值**：''\n@param query__start_time 开始时间，Unix 时间戳，单位为秒。该参数与 end_time 用于设置查询的时间范围。**注意**：start_time 与 end_time 之间的时间区间需要小于 40 天 **默认值**：''\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_calendarEvent_instanceView/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fbcf-7a8f-b97e-e6ac28a80e2a",
+                "name": "calendar_v4_calendarEvent_get",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日程管理-获取日程-调用该接口以当前身份（应用或用户）获取指定日历内的某一日程信息，包括日程的标题、时间段、视频会议信息、公开范围以及参与人权限等\n@param path__calendar_id 日程所在的日历 ID。关于日历 ID 可参见[日历 ID 说明] **默认值**：''\n@param path__event_id 日程 ID。创建日程时会返回日程 ID。你也可以调用以下接口获取某一日历的 ID。- [获取日程列表]- [搜索日程] **默认值**：''\n@param query__max_attendee_num 返回的最大参与人数量。调用[获取日程参与人列表]可获取日程完整的参与人信息 **默认值**：0\n@param query__need_attendee 是否需要返回参与人信息。**可选值有**：- true：需要- false（默认值）：不需要 **默认值**：False\n@param query__need_meeting_settings 是否需要返回飞书视频会议（VC）的会前设置。需满足以下条件才可以获取到返回结果：- 日程的会议类型（vc_type）需要是 vc。- 需要有日程的编辑权限。**可选值有**：- true：需要- false（默认值）：不需要 **默认值**：False\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_calendarEvent_get query__max_attendee_num=\"0.0\" query__need_attendee=\"false\" query__need_meeting_settings=\"false\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fbcd-7e45-afb5-29add91f0dde",
+                "name": "calendar_v4_calendarEvent_create",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日程管理-创建日程-调用该接口以当前身份（应用或用户）在指定日历上创建一个日程\n@param body__end_time__date 结束时间，仅全天日程使用该字段，[RFC 3339] 格式，例如，2018-09-01。**注意**：该参数不能与 `timestamp` 同时指定 **默认值**：''\n@param body__end_time__timestamp 秒级时间戳，用于设置具体的结束时间。例如，1602504000 表示 2020/10/12 20:00:00（UTC +8 时区）。**注意**：该参数不能与 `date` 同时指定 **默认值**：''\n@param body__end_time__timezone 时区。使用 IANA Time Zone Database 标准，例如 Asia/Shanghai。- 全天日程时区固定为UTC +0- 非全天日程时区默认为 Asia/Shanghai **默认值**：''\n@param body__event_check_in__check_in_end_time__duration 相对于日程开始或者结束的偏移量(分钟)。- 目前取值只能为列表[0, 5, 15, 30, 60]之一，0表示立即开始。- 当time_type为before_event_start，duration不能取0 **默认值**：0\n@param body__event_check_in__check_in_end_time__time_type 偏移量(分钟)相对于的日程时间节点类型。 Options:before_event_start(BeforeEventStart 日程开始前),after_event_start(AfterEventStart 日程开始后),after_event_end(AfterEventEnd 日程结束后) **默认值**：'' Options:before_event_start, after_event_start, after_event_end\n@param body__event_check_in__check_in_start_time__duration 相对于日程开始或者结束的偏移量(分钟)。- 目前取值只能为列表[0, 5, 15, 30, 60]之一，0表示立即开始。- 当time_type为before_event_start，duration不能取0 **默认值**：0\n@param body__event_check_in__check_in_start_time__time_type 偏移量(分钟)相对于的日程时间节点类型。 Options:before_event_start(BeforeEventStart 日程开始前),after_event_start(AfterEventStart 日程开始后),after_event_end(AfterEventEnd 日程结束后) **默认值**：'' Options:before_event_start, after_event_start, after_event_end\n@param body__event_check_in__enable_check_in 是否启用日程签到 **默认值**：False\n@param body__event_check_in__need_notify_attendees 签到开始时是否自动发送签到通知给参与者 **默认值**：False\n@param body__location__address 地点地址 **默认值**：''\n@param body__location__latitude 地点坐标纬度信息。- 对于国内的地点，采用 GCJ-02 标准。- 对于海外的地点，采用 WGS84 标准 **默认值**：0\n@param body__location__longitude 地点坐标经度信息。- 对于国内的地点，采用 GCJ-02 标准。- 对于海外的地点，采用 WGS84 标准 **默认值**：0\n@param body__location__name 地点名称 **默认值**：''\n@param body__start_time__date 开始时间，仅全天日程使用该字段，[RFC 3339] 格式，例如，2018-09-01。**注意**：该参数不能与 `timestamp` 同时指定 **默认值**：''\n@param body__start_time__timestamp 秒级时间戳，用于设置具体的开始时间。例如，1602504000 表示 2020/10/12 20:00:00（UTC +8 时区）。**注意**：该参数不能与 `date` 同时指定 **默认值**：''\n@param body__start_time__timezone 时区。使用 IANA Time Zone Database 标准，例如 Asia/Shanghai。- 全天日程时区固定为UTC +0- 非全天日程时区默认为 Asia/Shanghai **默认值**：''\n@param body__vchat__meeting_settings__allow_attendees_start 是否允许日程参与者发起会议。**可选值有**：- true（默认值）：允许- false：不允许**注意**：应用日历上操作日程时，该字段必须为 true，否则没有人能发起会议 **默认值**：False\n@param body__vchat__meeting_settings__assign_hosts 通过用户 ID 指定主持人，ID 类型需和 user_id_type 保持一致。**注意**：- 仅日程组织者可以指定主持人。- 主持人不能是非用户身份。- 主持人不能是外部租户用户身份。- 在应用日历上操作日程时，不允许指定主持人 **默认值**：[]\n@param body__vchat__meeting_settings__auto_record 是否开启自动录制。**可选值有**：- true：开启- false（默认值）：不开启 **默认值**：False\n@param body__vchat__meeting_settings__join_meeting_permission 设置入会范围。**默认值**：anyone_can_join Options:anyone_can_join(AnyOne 所有人可以加入会议),only_organization_employees(OnlySameOrganization 仅企业内的用户可以加入会议),only_event_attendees(OnlyEventAttendees 仅日程参与者可以加入会议) **默认值**：'' Options:anyone_can_join, only_organization_employees, only_event_attendees\n@param body__vchat__meeting_settings__open_lobby 是否开启等候室。**可选值有**：- true（默认值）：开启- false：不开启 **默认值**：False\n@param body__vchat__meeting_settings__owner_id 设置会议 owner 的用户 ID，ID 类型需和 user_id_type 保持一致。该参数需满足以下全部条件才会生效：- 应用身份（tenant_access_token）请求，且在应用日历上操作日程。- 首次将日程设置为 VC 会议时，才能设置owner。- owner 不能为非用户身份。- owner 不能为外部租户用户身份 **默认值**：''\n@param body__vchat__description 第三方视频会议文案。**默认值**：空，为空展示默认文案 **默认值**：''\n@param body__vchat__icon_type 第三方视频会议的 icon 类型。**默认值**：default Options:vc(飞书视频会议 icon。),live(直播视频会议 icon。),default(默认 icon。) **默认值**：'' Options:vc, live, default\n@param body__vchat__meeting_url 视频会议 URL **默认值**：''\n@param body__vchat__vc_type 视频会议类型。如果无需视频会议，则必须传入 `no_meeting`。**默认值**：空，表示在首次添加日程参与人时，会自动生成飞书视频会议 URL。 Options:vc(飞书视频会议。取该类型时，vchat 内的其他字段均无效。),third_party(ThirdParty 第三方链接视频会议。取该类型时，仅生效 vchat 内的 icon_type、description、meeting_url 字段。),no_meeting(NoMeeting 无视频会议。取该类型时，vchat 内的其他字段均无效。),lark_live(LarkLive 飞书直播。该值用于客户端，不支持通过 API 调用，只读。),unknown(未知类型。该值用于客户端做兼容使用，不支持通过 API 调用，只读。) **默认值**：'' Options:vc, third_party, no_meeting, lark_live, unknown\n@param body__attachments 日程附件 **默认值**：[]\n@param body__attendee_ability 参与人权限。**默认值**：none Options:none(无法编辑日程、无法邀请其他参与人、无法查看参与人列表),can_see_others(CanSeeOthers 无法编辑日程、无法邀请其他参与人、可以查看参与人列表),can_invite_others(CanInviteOthers 无法编辑日程、可以邀请其他参与人、可以查看参与人列表),can_modify_event(CanModifyEvent 可以编辑日程、可以邀请其他参与人、可以查看参与人列表) **默认值**：'' Options:none, can_see_others, can_invite_others, can_modify_event\n@param body__color 日程颜色，取值通过颜色 RGB 值的 int32 表示。**注意**：- 该参数仅对当前身份生效。- 客户端展示时会映射到色板上最接近的一种颜色。- 取值为 0 或 -1 时，默认跟随日历颜色 **默认值**：0\n@param body__description 日程描述。支持解析Html标签。**注意**：可以通过Html标签来实现部分富文本格式，但是客户端生成的富文本格式并不是通过Html标签实现，如果通过客户端生成富文本描述后，再通过API更新描述，会导致客户端原来的富文本格式丢失 **默认值**：''\n@param body__free_busy_status 日程占用的忙闲状态，新建日程默认为 `busy`。**注意**：该参数仅在新建日程时，对所有参与人生效。如果后续更新日程时修改了该参数值，则仅对当前身份生效。 Options:busy(忙碌),free(空闲) **默认值**：'' Options:busy, free\n@param body__need_notification 更新日程时，是否给日程参与人发送 Bot 通知。**可选值有**：- true：发送通知- false：不发送通知**默认值**：true **默认值**：False\n@param body__recurrence 重复日程的重复性规则，规则设置方式参考[rfc5545]。**默认值**：空，表示当前日程不是重复日程。**注意**：- COUNT 和 UNTIL 不支持同时出现。- 预定会议室重复日程长度不得超过两年 **默认值**：''\n@param body__reminders 日程提醒列表。不传值则默认为空 **默认值**：[]\n@param body__schemas 日程自定义信息，控制日程详情页的 UI 展示。不传值则默认为空 **默认值**：[]\n@param body__summary 日程标题。**注意**：为确保数据安全，系统会自动检测日程标题内容，当包含 **晋升、绩效、述职、调薪、调级、复议、申诉、校准、答辩** 中任一关键词时，该日程不会生成会议纪要 **默认值**：''\n@param body__visibility 日程公开范围，新建日程默认为 `default`。**注意**：该参数仅在新建日程时，对所有参与人生效。如果后续更新日程修改了该参数值，则仅对当前身份生效。 Options:default(默认权限，即跟随日历权限，默认仅向他人显示是否忙碌),public(公开，显示日程详情),private(私密，仅自己可见详情) **默认值**：'' Options:default, public, private\n@param path__calendar_id 日历 ID。创建共享日历时会返回日历 ID。你也可以调用以下接口获取某一日历的 ID。- [查询主日历信息]- [查询日历列表]- [搜索日历] **默认值**：''\n@param query__idempotency_key 创建日程的幂等 key，该 key 在应用和日历维度下唯一，用于避免重复创建资源。建议按照示例值的格式进行取值 **默认值**：''\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_calendarEvent_create body__event_check_in__check_in_end_time__duration=\"0.0\" body__event_check_in__check_in_start_time__duration=\"0.0\" body__event_check_in__enable_check_in=\"false\" body__event_check_in__need_notify_attendees=\"false\" body__location__latitude=\"0.0\" body__location__longitude=\"0.0\" body__vchat__meeting_settings__allow_attendees_start=\"false\" body__vchat__meeting_settings__auto_record=\"false\" body__vchat__meeting_settings__open_lobby=\"false\" body__color=\"0.0\" body__need_notification=\"false\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fbcb-79d0-90ad-2691347e4019",
+                "name": "calendar_v4_calendarEventAttendee_list",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日程参与人管理（含会议室）-获取日程参与人列表-调用该接口以当前身份（应用或用户）获取日程的参与人列表\n@param path__calendar_id 日程所在的日历 ID。关于日历 ID 可参见[日历 ID 说明] **默认值**：''\n@param path__event_id 日程 ID。创建日程时会返回日程 ID。你也可以调用以下接口获取某一日历的 ID。- [获取日程列表]- [搜索日程] **默认值**：''\n@param query__need_resource_customization 是否需要会议室表单信息。**可选值有**：- true：需要- false（默认值）：不需要**注意**：当前身份需要有日程的编辑权限才会返回会议室表单信息，即当前身份需要是日程的组织者，或者是日程参与人且日程设置了**参与人可编辑日程**权限。你可以调用[获取日程]接口，获取日程的参与人权限（attendee_ability） **默认值**：False\n@param query__page_size 一次请求返回的最大日程参与人数量。最小值为 10，传入小于 10 的值默认按照 10 计算 **默认值**：0\n@param query__page_token 分页标记，第一次请求不填，表示从头开始遍历；分页查询结果还有更多项时会同时返回新的 page_token，下次遍历可采用该 page_token 获取查询结果 **默认值**：''\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_calendarEventAttendee_list query__need_resource_customization=\"false\" query__page_size=\"0.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fbc9-7873-b291-ef1158bd84a0",
+                "name": "calendar_v4_calendarEventAttendee_create",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日程参与人管理（含会议室）-添加日程参与人-调用该接口以当前身份（应用或用户）为指定日程添加一个或多个参与人，参与人类型包括用户、群组、会议室以及邮箱\n@param body__add_operator_to_attendee 是否添加会议室联系人（operate_id）到日程参与人。**可选值有**：- true（默认值）：启用- false：不启用 **默认值**：False\n@param body__attendees 新增参与人列表。**注意**：- 单次请求可设置的参与人数量（含会议室）上限为 1000。- 单次请求可设置的会议室数量上限为 100 **默认值**：[]\n@param body__instance_start_time_admin 使用管理员身份访问时，要修改的日程实例。**注意**：- 该参数仅用于修改重复日程中的某一日程实例，非重复日程无需填此字段。- 你可以调用[获取重复日程实例]接口，获取重复日程中某一日程实例的 event_id。该参数取值为 event_id 的时间戳后缀。例如查询到的日程实例 ID 为 `2cf525f0-1e67-4b04-ad4d-30b7f003903c_1713168000`，则当前的 `instance_start_time_admin` 取值为 `1713168000`。**默认值**：空 **默认值**：''\n@param body__is_enable_admin 是否启用会议室管理员身份（需先在管理后台设置某成员为会议室管理员)。**可选值有**：- true：启用- false（默认值）：不启用**说明**：开启后，本次请求只处理会议室数据，其他参与人操作不会生效 **默认值**：False\n@param body__need_notification 是否给参与人发送 Bot 通知。**可选值有**：- true（默认值）：发送- false：不发送 **默认值**：False\n@param path__calendar_id 日程对应的日历 ID。了解更多，参见[日历 ID 说明] **默认值**：''\n@param path__event_id 日程 ID。创建日程时会返回日程 ID。你也可以调用以下接口获取某一日历的 ID。- [获取日程列表]- [搜索日程] **默认值**：''\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_calendarEventAttendee_create body__add_operator_to_attendee=\"false\" body__is_enable_admin=\"false\" body__need_notification=\"false\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            },
+            {
+                "id": "019b1261-fbc7-7421-8f13-c86ead18d30e",
+                "name": "calendar_v4_calendarEventAttendeeChatMember_list",
+                "abstract": "<!--\n[Feishu/Lark]-日历-日程参与人管理（含会议室）-获取日程参与群成员列表-调用该接口以当前身份（应用或用户）获取日程的群组类型参与人的群成员列表\n@param path__attendee_id 群组类型参与人 ID。添加日程参与人时，会返回参与人 ID（attendee_id），你也可以调用[获取日程参与人列表]接口，查询指定日程的参与人 ID **默认值**：''\n@param path__calendar_id 日程所在的日历 ID。关于日历 ID 可参见[日历 ID 说明] **默认值**：''\n@param path__event_id 日程 ID。创建日程时会返回日程 ID。你也可以调用以下接口获取某一日历的 ID。- [获取日程列表]- [搜索日程] **默认值**：''\n@param query__page_size 一次请求返回的最大群成员数量 **默认值**：0\n@param query__page_token 分页标记，第一次请求不填，表示从头开始遍历；分页查询结果还有更多项时会同时返回新的 page_token，下次遍历可采用该 page_token 获取查询结果 **默认值**：''\n@param query__user_id_type 用户ID类型 **默认值**：'' Options:open_id, union_id, user_id\n-->\n<calendar_v4_calendarEventAttendeeChatMember_list query__page_size=\"0.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019b125d-a72a-7680-a486-7e21fde37fb1",
+                    "key": "wrapper",
+                    "rank": 0
+                }
+            }
+        ],
+        "sys.body": [
+            {
+                "id": "019b1261-fa8d-7e20-b48a-c60697deb1b7",
+                "name": "feel_hot",
+                "abstract": "<!--\n热\n-->\n<feel_hot duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa5d-7248-9837-e96d654cdfb2",
+                "name": "push_up",
+                "abstract": "<!--\n身体动作：俯卧撑\n-->\n<push_up duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa5f-7891-a415-e1eac1da111b",
+                "name": "wriggle",
+                "abstract": "<!--\n身体动作：蠕动\n-->\n<wriggle duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa61-71be-aa0a-092bac11f53a",
+                "name": "wave",
+                "abstract": "<!--\n身体动作：躯体波浪运动\n-->\n<wave speed=\"80.0\" amplitude=\"50.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa63-7f11-ac32-b4f9ee79935c",
+                "name": "shake_ass",
+                "abstract": "<!--\n身体动作：摇屁股\n-->\n<shake_ass speed=\"80.0\" amplitude=\"50.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa65-7e5b-9cd2-02dc84d50da6",
+                "name": "shake_like_dog",
+                "abstract": "<!--\n身体动作：像狗一样摇晃身体\n-->\n<shake_like_dog speed=\"80.0\" amplitude=\"50.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa67-7c6b-a7c8-34bef982c6e6",
+                "name": "move_covertly",
+                "abstract": "<!--\n身体动作：潜行\n@param distance 移动距离，单位: 厘米，默认值 5.0\n@param height 高度百分比，取值范围 [0, 100]，默认值 50\n-->\n<move_covertly speed=\"80.0\" amplitude=\"50.0\" distance=\"5.0\" height=\"50.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa69-784b-939d-594b878304e4",
+                "name": "sit_and_shake",
+                "abstract": "<!--\n丁字坐\n-->\n<sit_and_shake speed=\"80.0\" amplitude=\"50.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa6b-7e06-8cf7-087b9556e638",
+                "name": "fly_rub_hands",
+                "abstract": "<!--\n身体动作：苍蝇搓手\n-->\n<fly_rub_hands speed=\"80.0\" amplitude=\"60.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa6f-72b5-bb1f-0879dff7bda6",
+                "name": "creep",
+                "abstract": "<!--\n身体动作：匍匐\n@param direction 匍匐方向，可选值为 'forward'（向前）、'backward'（向后）、'left'（向左）、'right'（向右），默认值 'forward'\n-->\n<creep direction=\"forward\" speed=\"80.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa71-7e70-83b0-db8c6e9c18c0",
+                "name": "arm_pull",
+                "abstract": "<!--\n身体动作：手臂拉扯\n@param direction 拉扯方向，可选值为 'forward'（向前）、'backward'（向后），默认值 'forward'\n-->\n<arm_pull direction=\"forward\" speed=\"80.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa73-740c-8f6e-8f39e7ac4807",
+                "name": "excavate_floor",
+                "abstract": "<!--\n身体动作：扣地板\n@param leg 执行动作的腿编号，\"1\"->右前腿、\"2\"->左前腿、\"3\"->左后腿、\"4\"->右后腿，默认值 \"1\"\n-->\n<excavate_floor leg=\"1\" speed=\"80.0\" times=\"1\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa75-7bc4-91a6-a63c139c17ce",
+                "name": "chest_expansion_exercise",
+                "abstract": "<!--\n身体动作：扩胸运动\n-->\n<chest_expansion_exercise speed=\"80.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa77-7479-beeb-c6e572f8ee19",
+                "name": "giddy",
+                "abstract": "<!--\n身体动作：晕眩\n-->\n<giddy speed=\"80.0\" amplitude=\"50.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa79-78a0-a378-cdedc28637cf",
+                "name": "arm_knock",
+                "abstract": "<!--\n身体动作：手臂敲击\n-->\n<arm_knock speed=\"80.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa7b-7281-981a-67a088790460",
+                "name": "single_leg_knock",
+                "abstract": "<!--\n身体动作：单腿敲击\n@param leg 执行动作的腿编号，\"1\"->右前腿、\"2\"->左前腿、\"3\"->左后腿、\"4\"->右后腿，取值范围 [\"1\", \"2\", \"3\", \"4\"]，默认值 \"1\"\n-->\n<single_leg_knock leg=\"1\" speed=\"80.0\" times=\"1\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa7d-7a12-af35-4e3b67aabc90",
+                "name": "swing_side_to_side",
+                "abstract": "<!--\n身体动作：后仰左右摆动身体\n@param posture 身体姿态，可选值为 'forerake'（前倾）、'hypsokinesis'（后仰），默认值 'forerake'\n-->\n<swing_side_to_side posture=\"forerake\" speed=\"80.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa7f-79e3-bf6b-9987cf6c3ea2",
+                "name": "move_strides",
+                "abstract": "<!--\n身体动作：跨步移动\n@param direction 移动方向，可选值为 'forward'（向前）、'backward'（向后）、'left'（向左）、'right'（向右），默认值 'forward'\n@param stride_size 步幅大小，可选值为 'big'（大步）、'small'（小步），默认值 'big'\n-->\n<move_strides direction=\"forward\" stride_size=\"big\" speed=\"80.0\" times=\"3\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa81-7dac-ba12-a60b23d0df3c",
+                "name": "trumble_down",
+                "abstract": "<!--\n身体动作：向一个方向摔倒\n-->\n<trumble_down duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa83-7325-bb61-c8a3e487af83",
+                "name": "rotate",
+                "abstract": "<!--\n身体动作：左右旋转\n@param angle 旋转角度，正数表示向右旋转，负数表示向左旋转，取值范围 [0, 100]（绝对值），默认值 360\n-->\n<rotate angle=\"360\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa85-7e4a-bec3-8a603059f179",
+                "name": "run_distance",
+                "abstract": "<!--\n身体动作：按距离奔跑\n@param distance 奔跑距离，单位: 厘米，默认值 0.0\n-->\n<run_distance speed=\"80.0\" amplitude=\"50.0\" distance=\"0.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa87-739d-9eb6-a420406f75e3",
+                "name": "sit",
+                "abstract": "<!--\n身体动作：坐姿\n@param style 坐姿样式，可选值为 'dog'（狗坐）、'T'（T型坐）、'normal'（普通坐），默认值 'dog'\n-->\n<sit style=\"dog\" duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa89-725c-81b3-40d2c3b4e51e",
+                "name": "stand",
+                "abstract": "<!--\n身体动作：站姿\n@param posture 站立姿态，可选值为 'forerake'（前倾站）、'hypsokinesis'（后仰站）、'normal'（普通站），默认值 'normal'\n-->\n<stand posture=\"normal\" duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa8b-7183-8aa2-d13fd8a940a6",
+                "name": "body_lean",
+                "abstract": "<!--\n身体动作：身体倾斜\n@param direction 倾斜方向，可选值为 'left'（向左倾斜）、'right'（向右倾斜），默认值 'right'\n-->\n<body_lean direction=\"right\" duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa5b-7044-81d6-fe23abf19183",
+                "name": "run",
+                "abstract": "<!--\n身体动作：移动\n@param speed 移动速度，正数表示向前移动，负数表示向后移动，默认值 80\n-->\n<run speed=\"80\" duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa8f-70bd-a57a-c6d0778f174e",
+                "name": "feel_cold",
+                "abstract": "<!--\n冷\n-->\n<feel_cold duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa91-7815-9867-bda6f615bf43",
+                "name": "stand_like_dog",
+                "abstract": "<!--\n狗站立\n-->\n<stand_like_dog duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa97-7655-8589-3e0d07180ca9",
+                "name": "body_fan_fold",
+                "abstract": "<!--\n身体扇风样子的折叠\n-->\n<body_fan_fold duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa99-7ddb-8214-02d2126a67e2",
+                "name": "body_fan_expand",
+                "abstract": "<!--\n身体从扇风样子的折叠状态展开\n-->\n<body_fan_expand duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            },
+            {
+                "id": "019b1261-fa9d-7e23-9d1e-58fc93d1408f",
+                "name": "body_reset",
+                "abstract": "<!--\n身体动作：身体复位\n-->\n<body_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "9147b8b9-0018-4b43-a26d-4f0ffeba549f",
+                    "key": "body",
+                    "rank": 2
+                }
+            }
+        ],
+        "sys.face": [
+            {
+                "id": "019b1261-fae1-780b-8455-f8e8f7795a43",
+                "name": "face_emo",
+                "abstract": "<!--\n情绪化面部表情（但执行在屏幕）\n@param  emo取值见 EmoType（统一语义，执行范围=屏幕）\n-->\n<face_emo emo=\" \" duration=\"3.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "8e231f5c-8c6b-487d-b389-b5f76a766540",
+                    "key": "face",
+                    "rank": 3
+                }
+            },
+            {
+                "id": "019b1261-fadf-7c1b-b018-52b7ddf0790b",
+                "name": "face_reset",
+                "abstract": "<!--\n该Routine无参数（不含self），无额外说明\n-->\n<face_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "8e231f5c-8c6b-487d-b389-b5f76a766540",
+                    "key": "face",
+                    "rank": 3
+                }
+            }
+        ],
+        "sys.ear": [
+            {
+                "id": "019b1261-faa3-72ce-9d84-a82f11d6252c",
+                "name": "shake_ear",
+                "abstract": "<!--\n摇动耳朵。\n-->\n<shake_ear duration=\"5.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "833bbcf3-67a8-4764-b293-eb0aa41b247c",
+                    "key": "ear",
+                    "rank": 4
+                }
+            },
+            {
+                "id": "019b1261-faa5-72fb-91c5-9f291534d657",
+                "name": "ear_swing",
+                "abstract": "<!--\n摆动单侧耳朵。\n@param side 摆动的耳朵，'left' 或 'right'\n@param start_angle 起始角度（度）\n@param end_angle 结束角度（度）\n-->\n<ear_swing side=\"left\" start_angle=\"-45.0\" end_angle=\"135.0\" speed=\"80.0\" duration=\"5.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "833bbcf3-67a8-4764-b293-eb0aa41b247c",
+                    "key": "ear",
+                    "rank": 4
+                }
+            },
+            {
+                "id": "019b1261-faa1-72d3-bba5-53f56eba7920",
+                "name": "ear_state",
+                "abstract": "<!--\n设置耳朵状态。\n@param state 耳朵状态，'inquisitive'（好奇）或 'opponent'（敌对）\n-->\n<ear_state state=\"inquisitive\" duration=\"1.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "833bbcf3-67a8-4764-b293-eb0aa41b247c",
+                    "key": "ear",
+                    "rank": 4
+                }
+            },
+            {
+                "id": "019b1261-faa7-7412-9624-2f8a70b98932",
+                "name": "ear_reset",
+                "abstract": "<!--\n重置耳朵至初始位置。\n-->\n<ear_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "833bbcf3-67a8-4764-b293-eb0aa41b247c",
+                    "key": "ear",
+                    "rank": 4
+                }
+            },
+            {
+                "id": "019b1261-faa9-7220-9b00-1e8ac60c0431",
+                "name": "ear_emo",
+                "abstract": "<!--\n情绪化耳朵动作（但执行在耳朵）\n@param emo 取值见 EmoType（执行范围=耳朵）\n-->\n<ear_emo emo=\" \" duration=\"1.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "833bbcf3-67a8-4764-b293-eb0aa41b247c",
+                    "key": "ear",
+                    "rank": 4
+                }
+            }
+        ],
+        "sys.head": [
+            {
+                "id": "019b1261-faff-7941-b932-9865c693cf25",
+                "name": "head_emo",
+                "abstract": "<!--\n头部情绪动作（仅执行在头部）\n@param emo 取值见EmoType（执行范围=头部）\n-->\n<head_emo emo=\" \" duration=\"1.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "601e35ee-f373-4ed0-8861-da6e45d96ddb",
+                    "key": "head",
+                    "rank": 5
+                }
+            },
+            {
+                "id": "019b1261-faf3-7f3d-b820-ef78934d3cc9",
+                "name": "head_act",
+                "abstract": "<!--\n控制头部执行摇头或点头动作。\n@param action 动作类型，'shake' 表示摇头，'nod' 表示点头\n-->\n<head_act action=\"shake\" duration=\"1.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "601e35ee-f373-4ed0-8861-da6e45d96ddb",
+                    "key": "head",
+                    "rank": 5
+                }
+            },
+            {
+                "id": "019b1261-fafd-759d-90e6-a3b67b4d4f95",
+                "name": "head_reset",
+                "abstract": "<!--\n回正头部,重置头部位置到初始默认状态。\n-->\n<head_reset/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "601e35ee-f373-4ed0-8861-da6e45d96ddb",
+                    "key": "head",
+                    "rank": 5
+                }
+            }
+        ],
+        "sys.figure": [
+            {
+                "id": "019b1261-faef-793d-80f8-3d8ab97d933f",
+                "name": "spider_mode",
+                "abstract": "<!--\n机器人状态模式切换\n@param mode sleep（轻唤醒模式）， normal（休闲模式），standby（待机模式）\n-->\n<spider_mode mode=\"standby\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a248d-b07e-7c0c-b39f-b62662988a8f",
+                    "key": "figure",
+                    "rank": 6
+                }
+            },
+            {
+                "id": "019b1261-faed-77bf-80fa-b28223358bdb",
+                "name": "spider_tracking",
+                "abstract": "<!--\n跟踪人脸：机器人的屏幕眼睛和身体都会随人脸的移动而移动\n@param enable 是否启用屏幕眼睛跟踪模式，True 为启用，False 为禁用，默认值 True\n@param person_id\n- 0: 追踪距离最近的人\n- >0 : 具体的某个人，每个不同的数字表示不同的人\n-->\n<spider_tracking enable=\"true\" person_id=\"0.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a248d-b07e-7c0c-b39f-b62662988a8f",
+                    "key": "figure",
+                    "rank": 6
+                }
+            },
+            {
+                "id": "019b1261-faeb-72cc-9690-7e25e866c3d8",
+                "name": "fan_unfold",
+                "abstract": "<!--\n从扇风样子一样折叠动作再展开\n-->\n<fan_unfold duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a248d-b07e-7c0c-b39f-b62662988a8f",
+                    "key": "figure",
+                    "rank": 6
+                }
+            },
+            {
+                "id": "019b1261-fae9-7388-9403-95a2dc30a404",
+                "name": "fan_fold",
+                "abstract": "<!--\n扇风样子的折叠动作\n-->\n<fan_fold duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a248d-b07e-7c0c-b39f-b62662988a8f",
+                    "key": "figure",
+                    "rank": 6
+                }
+            },
+            {
+                "id": "019b1261-fae7-76a7-b8ac-cd555684481c",
+                "name": "spider_unfold",
+                "abstract": "<!--\n展开\n-->\n<spider_unfold duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a248d-b07e-7c0c-b39f-b62662988a8f",
+                    "key": "figure",
+                    "rank": 6
+                }
+            },
+            {
+                "id": "019b1261-fae5-7372-9b37-06d4a5d473d2",
+                "name": "spider_fold",
+                "abstract": "<!--\n折叠起来\n-->\n<spider_fold duration=\"2.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a248d-b07e-7c0c-b39f-b62662988a8f",
+                    "key": "figure",
+                    "rank": 6
+                }
+            },
+            {
+                "id": "019b1261-fae3-7ba4-9430-e3b81d0674da",
+                "name": "emotion",
+                "abstract": "<!--\n全身情绪（总的 emo 动作，可能联动多个部位）\n@param emo 取值见 EmoType（统一语义，执行范围=全身/多域联动）\n-->\n<emotion emo=\" \" duration=\"3.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a248d-b07e-7c0c-b39f-b62662988a8f",
+                    "key": "figure",
+                    "rank": 6
+                }
+            }
+        ],
+        "sys.bgm": [
+            {
+                "id": "019b1261-fb3d-7c5b-abd8-5164a6976222",
+                "name": "play_bgm",
+                "abstract": "<!--\n音乐播放模块，支持背景音乐播放功能。\n播放背景音乐，一般是开闭标签：<play_bgm>...动作...</play_bgm>\n@param name 音乐文件名，可选值：'Billie-Jean' | '凄惨' | '危机四伏' | '埃及舞' | '大展宏图' | '安静' | '抒情史诗' | '新宝岛' | '生化危机-恐怖背景音' | '社会摇' | '科技机械扫描声音' | '舞曲-鼓点跳舞演示' | '蔡徐坤-你干嘛' | '触电' | '鸡你太美'\n@param start 开始播放时间（秒），默认0\n@param duration 播放持续时间（秒），可选，不设置则播放完整音乐\n-->\n<play_bgm name=\" \" loop=\"false\" offset=\"0.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a39ce-3aee-7f25-9f82-f187b64ee94d",
+                    "key": "bgm",
+                    "rank": 7
+                }
+            }
+        ],
+        "sys.sfx": [
+            {
+                "id": "019b1261-fb45-74e0-9646-dd858db87885",
+                "name": "play_sfx",
+                "abstract": "<!--\n音效播放模块，支持音效播放功能。\n播放背景音效\n@param name 音效文件名，可选值：'countdown' | 'game_over' | 'low_battery' | '一惊' | '人声鼎沸欢呼声' | '哔哔声' | '尖叫-恐怖音效' | '尴尬乌鸦声' | '开门音效' | '故障提示音' | '敲代码' | '机械音效果-坐下' | '机械音效果-起立' | '狗叫声' | '转折' | '通信失真' | '错误提示' | '音效-变形关' | '音效-变形开' | '鬼叫环绕声'\n-->\n<play_sfx name=\" \"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a7bdd-1277-7aae-aab2-b90813c0492a",
+                    "key": "sfx",
+                    "rank": 8
+                }
+            }
+        ],
+        "sys.vision": [
+            {
+                "id": "019b1261-fb01-73a4-9bf1-6ada7038487d",
+                "name": "capture",
+                "abstract": "<!--\n摄像头：拍照，看一看，瞧一瞧，观察等获取前方画面用途，必须配合<REACT/>使用，以获得观察结果\n@param num 采集的照片总数量，默认为1\n@param interval 两次拍摄之间的时间间隔，默认为1\n-->\n<capture num=\"1\" interval=\"1.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a247f-2874-7382-8cf5-832a944411fc",
+                    "key": "vision",
+                    "rank": 9
+                }
+            },
+            {
+                "id": "019b1261-fb05-7546-8144-fc3283ed8b8c",
+                "name": "remove_user",
+                "abstract": "<!--\n删除一个已经注册的用户，\n@param name 用户名\n-->\n<remove_user name=\" \"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a247f-2874-7382-8cf5-832a944411fc",
+                    "key": "vision",
+                    "rank": 9
+                }
+            },
+            {
+                "id": "019b1261-fb03-74c3-9aad-639942d8df7e",
+                "name": "register_user",
+                "abstract": "<!--\n摄像头：注册用户人脸。当用户站在摄像头前并说出自己的名字，或用户要求\"记住这个人\"时使用。机器人会拍照并绑定人脸与用户名，后续可用于人脸识别。\n@param name 用户名\n@param duration 持续时间，单位: 秒，取值范围 [0, 100] ,默认值 5 ,默认5s内，必须出现人脸，否则失败\n-->\n<register_user name=\" \" duration=\"5.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a247f-2874-7382-8cf5-832a944411fc",
+                    "key": "vision",
+                    "rank": 9
+                }
+            }
+        ],
+        "sys.telnet": [
+            {
+                "id": "019b1261-fb4f-7e26-885a-70dad7352424",
+                "name": "telnet_remove_connection",
+                "abstract": "<!--\n删除一个telnent连接\n@param name 【连接名】，不同连接不能冲突\n-->\n<telnet_remove_connection name=\" \"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a15d1-4ab8-7b1b-bde4-6e59b8111083",
+                    "key": "telnet",
+                    "rank": 10
+                }
+            },
+            {
+                "id": "019b1261-fb49-7352-be14-a0be7da0a239",
+                "name": "telnet_add_connection",
+                "abstract": "<!--\n新增一个telnet方式的连接，以【连接名】作为唯一标识，后续可以通过【连接名】进行设备的操作\n@param name 【连接名】，不同连接不能冲突\n@param ip ip地址\n@param portsocket 端口号\n@param prompt 命令提示符，用来判断设备正常返回，并开始一个新命令，默认可以为空\n-->\n<telnet_add_connection name=\" \" ip=\" \" port=\" \"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a15d1-4ab8-7b1b-bde4-6e59b8111083",
+                    "key": "telnet",
+                    "rank": 10
+                }
+            },
+            {
+                "id": "019b1261-fb4b-7f48-ad5e-423829df8826",
+                "name": "telnet_command",
+                "abstract": "<!--\n在已经存在的telnet连接上，执行命令\n@param name 【连接名】，不同连接不能冲突\n@param command 不同设备的使用参考该设备的命令字\n@param delay默认为0，单位为秒，数据类型为浮点型，如果大于零则会在此时间后才执行command\n-->\n<telnet_command name=\" \" command=\" \" delay=\"0.0\"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a15d1-4ab8-7b1b-bde4-6e59b8111083",
+                    "key": "telnet",
+                    "rank": 10
+                }
+            },
+            {
+                "id": "019b1261-fb4d-7cdb-a3ed-04a1307b5060",
+                "name": "telnet_is_alive",
+                "abstract": "<!--\n检查指定连接是否存活\n@param name 【连接名】，不同连接不能冲突\n-->\n<telnet_is_alive name=\" \"/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a15d1-4ab8-7b1b-bde4-6e59b8111083",
+                    "key": "telnet",
+                    "rank": 10
+                }
+            },
+            {
+                "id": "019b1261-fb51-7b07-a03f-883c67fe9b03",
+                "name": "telnet_list_connections",
+                "abstract": "<!--\n列出所有活跃连接\n-->\n<telnet_list_connections/>",
+                "rank": 0,
+                "module_node": {
+                    "id": "019a15d1-4ab8-7b1b-bde4-6e59b8111083",
+                    "key": "telnet",
+                    "rank": 10
+                }
+            }
+        ]
+    }
+}

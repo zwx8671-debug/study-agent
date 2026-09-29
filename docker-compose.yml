@@ -1,0 +1,78 @@
+services:
+  # 第一个实例
+  ts-1:
+    build:
+      context: .
+      dockerfile: ./test-docker/test.Dockerfile
+    container_name: ts-1
+    ports:
+      - "8002:8002"
+    environment:
+      - NODE_ENV=local
+      - HOST=0.0.0.0
+      - PORT=8002
+      - LOG_TARGET=stdout
+      - SERVICE_NAME=ts-1
+    restart: unless-stopped
+    networks:
+      - coco-network
+
+  # 第二个实例
+  ts-2:
+    build:
+      context: .
+      dockerfile: ./test-docker/test.Dockerfile
+    container_name: ts-2
+    ports:
+      - "8003:8002"
+    environment:
+      - NODE_ENV=local
+      - HOST=0.0.0.0
+      - PORT=8002
+      - LOG_TARGET=stdout
+      - SERVICE_NAME=ts-2
+    restart: unless-stopped
+    networks:
+      - coco-network
+
+  # 第三个实例
+  ts-3:
+    build:
+      context: .
+      dockerfile: ./test-docker/test.Dockerfile
+    container_name: ts-3
+    ports:
+      - "8004:8002"
+    environment:
+      - NODE_ENV=local
+      - HOST=0.0.0.0
+      - PORT=8002
+      - LOG_TARGET=stdout
+      - SERVICE_NAME=ts-3
+    restart: unless-stopped
+    networks:
+      - coco-network
+
+  # OpenResty负载均衡器（极简Hash一致性路由）
+  openresty:
+    image: openresty/openresty:alpine
+    container_name: coco-openresty
+    ports:
+      - "80:80"
+    volumes:
+      - ./openresty/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - ./openresty:/var/log/nginx
+    restart: unless-stopped
+    depends_on:
+      ts-1:
+        condition: service_started
+      ts-2:
+        condition: service_started
+      ts-3:
+        condition: service_started
+    networks:
+      - coco-network
+
+networks:
+  coco-network:
+    driver: bridge

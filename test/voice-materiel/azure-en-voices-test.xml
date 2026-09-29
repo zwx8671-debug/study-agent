@@ -1,0 +1,27 @@
+<root>
+    Here's a test text for all 6 English voices from Azure TTS with varying speech rates and loudness:
+
+    <VOICE speech_rate="0.5" role="Jenny Multilingual" emotion="cheerful" loudness_rate="1.2">
+        Hello, I'm Jenny Multilingual speaking at 0.5x speed but 1.2x volume. I'm here to assist you with cheerful tone!
+    </VOICE>
+
+    <VOICE speech_rate="0.5" role="Jenny Multilingual" emotion="chat" loudness_rate="1.2">
+        你好，我是珍妮多语言，语速0.5倍但音量1.2倍。 I'm here to assist you with chat tone!
+    </VOICE>
+
+    <VOICE speech_rate="0.8" role="Guy" emotion="friendly" loudness_rate="1.5">
+        Hey everyone! I'm Guy speaking at 0.8x speed but 1.5x volume, and I'm super friendly. Nice to meet you!
+    </VOICE>
+
+    <VOICE speech_rate="2.0" role="Davis" emotion="excited" loudness_rate="0.5">
+        What's up! I'm Davis speaking at 2.0x speed but 0.5x volume, and I'm really excited to be here with you all!
+    </VOICE>
+
+    <VOICE speech_rate="1.2" role="Serena Multilingual" emotion="empathetic" loudness_rate="1.8">
+        Hello friends, I'm Serena Multilingual speaking at 1.2x speed and 1.8x volume. I understand your feelings and I'm here to listen empathetically.
+    </VOICE>
+
+    <VOICE speech_rate="1.8" role="Steffan Multilingual" emotion="cheerful" loudness_rate="1.0">
+        Greetings! I'm Steffan Multilingual speaking at 1.8x speed and normal volume. It's a wonderful day, isn't it? Let's make the most of it!
+    </VOICE>
+</root>

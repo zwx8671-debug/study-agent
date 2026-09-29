@@ -1,0 +1,72 @@
+{
+    "compilerOptions": {
+        // 指定编译后的 JavaScript 版本目标为 ES2024
+        "target": "ES2024",
+
+        // 指定生成的模块系统为 commonjs（Node.js 使用）
+        "module": "commonjs",
+
+        // 启用实验性的装饰器支持（用于依赖注入、路由装饰器等）
+        "experimentalDecorators": true,
+
+        // 启用装饰器元数据发射（配合 reflect-metadata 使用）
+        "emitDecoratorMetadata": true,
+
+        // 允许导入 JSON 模块
+        "resolveJsonModule": true,
+
+        // 允许从没有默认导出的模块进行默认导入
+        "allowSyntheticDefaultImports": true,
+
+        // 指定编译输出目录
+        "outDir": "dist",
+
+        // 指定源代码根目录
+        "rootDir": ".",
+
+        // 生成 source map 文件（用于调试和堆栈追踪）
+        // 注意：由于 tsc-alias 可能会误处理 .map 文件，暂时禁用内联 source map
+        // 使用 Node.js --enable-source-maps 参数配合 inline source map
+        "inlineSourceMap": true,
+        
+        // 将 TypeScript 源码内容内联到 source map 中
+        // 这样即使没有源文件，也能在错误堆栈中显示完整的 TS 代码
+        "inlineSources": true,
+
+        // 启用 ES 模块互操作性（使 CommonJS 和 ES 模块可以互相导入）
+        "esModuleInterop": true,
+
+        // 强制文件名大小写一致性
+        "forceConsistentCasingInFileNames": true,
+
+        // 启用所有严格类型检查选项
+        "strict": true,
+
+        // 允许隐式 any 类型（不强制所有变量都有明确类型）
+        "noImplicitAny": false,
+
+        // 跳过对声明文件的类型检查
+        "skipLibCheck": true,
+
+        // 路径映射配置，简化模块导入路径
+        "paths": {
+            "@model/*": ["./src/models/*"], // @model/* 映射到 models/* 目录
+            "@controller/*": ["./src/controllers/*"], // @controller/* 映射到 controllers/* 目录
+            "@route/*": ["./src/routes/*"], // @route/* 映射到 routes/* 目录
+            "@service/*": ["./src/services/*"], // @service/* 映射到 services/* 目录
+            "@dao/*": ["./src/dao/*"], // @dao/* 映射到 dao/* 目录
+            "@httpdao/*": ["./src/httpdao/*"], // @httpdao/* 映射到 httpdao/* 目录
+            "@config/*": ["./src/config/*"], // @config/* 映射到 config/* 目录
+            "@plugin/*": ["./src/plugins/*"], // @plugin/* 映射到 plugins/* 目录
+            "@utils/*": ["./src/utils/*"], // @utils/* 映射到 utils/* 目录
+            "@interface/*": ["./src/interfaces/*"], // @interface/* 映射到 interfaces/* 目录
+            "@middlewares/*": ["./src/middlewares/*"] // @middlewares/* 映射到 middlewares/* 目录
+        }
+    },
+
+    // 指定需要编译的文件/目录
+    "include": ["src", "test"],
+
+    // 指定需要排除的文件/目录（不会被编译）
+    "exclude": ["node_modules", "**/*.spec.ts", "cache", "dist", "logs"]
+}

@@ -1,0 +1,27 @@
+<root>
+    Here's a test text for all 6 Chinese voices from Azure TTS with varying speech rates and loudness:
+
+    <VOICE speech_rate="0.5" role="晓晓 多语言" emotion="affectionate" loudness_rate="1.2">
+        你好，我是晓晓多语言，以0.5倍语速和1.2倍音量为您服务。今天天气真好，适合出去散步呢！
+    </VOICE>
+
+    <VOICE speech_rate="1.5" role="云希" emotion="embarrassed" loudness_rate="0.8">
+        呃，那个，大家好，我是云希，以1.5倍语速和0.8倍音量为您服务。我有点不好意思告诉大家我的名字，但很高兴认识你们！
+    </VOICE>
+
+    <VOICE speech_rate="0.8" role="晓伊" emotion="cheerful" loudness_rate="1.5">
+        哈喽朋友们！我是晓伊，以0.8倍语速和1.5倍音量为您服务。今天心情特别好，想和大家分享一些有趣的事情！
+    </VOICE>
+
+    <VOICE speech_rate="2.0" role="云健" emotion="sports-commentary" loudness_rate="0.5">
+        各位观众朋友们，我是云健，以2.0倍语速和0.5倍音量为您服务。现在为您带来精彩的体育赛事解说，让我们一起感受运动的魅力！
+    </VOICE>
+
+    <VOICE speech_rate="1.2" role="晓悠 多语言" emotion="chat" loudness_rate="1.8">
+        嗨，我是晓悠多语言，以1.2倍语速和1.8倍音量为您服务。我们可以像朋友一样聊天哦。你今天过得怎么样？有什么有趣的事情分享吗？
+    </VOICE>
+
+    <VOICE speech_rate="1.8" role="云泽" emotion="calm" loudness_rate="1.0">
+        您好，我是云泽，以1.8倍语速和1.0倍音量为您服务。我将以平静温和的方式与您交流。在这个快节奏的世界里，让我们一起寻找内心的宁静。
+    </VOICE>
+</root>

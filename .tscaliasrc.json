@@ -1,0 +1,10 @@
+{
+  "resolveFullPaths": true,
+  "verbose": false,
+  "fileExtensions": [".js"],
+  "replacers": {
+    "exampleReplacer": {
+      "enabled": false
+    }
+  }
+}

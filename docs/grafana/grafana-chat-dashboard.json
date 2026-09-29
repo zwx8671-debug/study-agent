@@ -1,0 +1,880 @@
+{
+    "title": "Coco Cloud Chat 指标监控仪表板",
+    "tags": ["prometheus", "chat"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "templating": {
+        "list": [
+            {
+                "name": "job",
+                "allValue": ".*",
+                "current": {
+                    "label": "Job",
+                    "text": "coco-cloud-ts",
+                    "value": "coco-cloud-ts"
+                },
+                "definition": "label_values({job=\"coco-cloud-ts\"},job)",
+                "includeAll": false,
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values({job=\"coco-cloud-ts\"},job)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "allValue": ".*",
+                "current": {
+                    "text": "192.168.10.234:8002",
+                    "value": "192.168.10.234:8002"
+                },
+                "definition": "label_values({job=\"$job\"},instance)",
+                "includeAll": false,
+                "label": "Instance",
+                "name": "instance",
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values({job=\"$job\"},instance)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            }
+        ]
+    },
+    "panels": [
+        {
+            "title": "Agent Chat 关键性能指标（大多延迟指标都是基于xx指标时间-用户尾包时间）",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 1,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "STT完成延迟（P95）",
+            "type": "stat",
+            "gridPos": {
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_stt_complete_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "STT完成延迟",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 500,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 1000,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "数据准备耗时（P95）",
+            "type": "stat",
+            "gridPos": {
+                "x": 4,
+                "y": 2,
+                "w": 4,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_data_prep_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "数据准备耗时",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 500,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 1000,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "TTS连接/LLM思考时间（P95）",
+            "type": "stat",
+            "gridPos": {
+                "x": 8,
+                "y": 2,
+                "w": 4,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_connection_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "连接建立耗时",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 1000,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 2000,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "快速响应延迟（P95）",
+            "type": "stat",
+            "gridPos": {
+                "x": 12,
+                "y": 2,
+                "w": 4,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_quick_response_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "快速响应延迟",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 500,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 1000,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "FuncToken延迟（P95）",
+            "type": "stat",
+            "gridPos": {
+                "x": 16,
+                "y": 2,
+                "w": 4,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_func_token_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "FuncToken延迟",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 1000,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 2000,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "首包音频延迟（P95）",
+            "type": "stat",
+            "gridPos": {
+                "x": 20,
+                "y": 2,
+                "w": 4,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_first_audio_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "首包音频延迟",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 1000,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 2000,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "聊天并发数趋势",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 20,
+                "w": 24,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum(agent_chat_concurrent{job=\"$job\", instance=\"$instance\"})",
+                    "legendFormat": "总并发数",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 20
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "single"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            }
+        },
+        {
+            "title": "STT完成延迟趋势（P50/P95/P99）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 67,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(agent_chat_stt_complete_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_stt_complete_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(agent_chat_stt_complete_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P99",
+                    "refId": "C"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_stt_complete_delay_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_stt_complete_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "平均时延",
+                    "refId": "D"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "数据准备耗时（查库）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 67,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(agent_chat_data_prep_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_data_prep_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(agent_chat_data_prep_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P99",
+                    "refId": "C"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_data_prep_duration_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_data_prep_duration_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "平均时延",
+                    "refId": "D"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "连接建立耗时（TTS/LLM）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 75,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(agent_chat_connection_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_connection_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(agent_chat_connection_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P99",
+                    "refId": "C"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_connection_duration_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_connection_duration_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "平均时延",
+                    "refId": "D"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "快速响应延迟",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 75,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(agent_chat_quick_response_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_quick_response_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(agent_chat_quick_response_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P99",
+                    "refId": "C"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_quick_response_delay_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_quick_response_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "平均时延",
+                    "refId": "D"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "FuncToken首包延迟",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 83,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(agent_chat_func_token_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_func_token_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(agent_chat_func_token_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P99",
+                    "refId": "C"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_func_token_delay_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_func_token_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "平均时延",
+                    "refId": "D"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "首包音频延迟趋势（P50/P95/P99）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 83,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(agent_chat_first_audio_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_first_audio_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(agent_chat_first_audio_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P99",
+                    "refId": "C"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_first_audio_delay_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_first_audio_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "平均时延",
+                    "refId": "D"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "性能指标对比（P95）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 91,
+                "w": 24,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_stt_complete_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "STT完成",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_data_prep_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "数据准备",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_connection_duration_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "连接建立",
+                    "refId": "C"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_quick_response_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "快速响应",
+                    "refId": "D"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_func_token_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "FuncToken",
+                    "refId": "E"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(agent_chat_first_audio_delay_ms_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "首包音频",
+                    "refId": "F"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_stt_complete_delay_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_stt_complete_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "STT完成（平均）",
+                    "refId": "G"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_data_prep_duration_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_data_prep_duration_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "数据准备（平均）",
+                    "refId": "H"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_connection_duration_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_connection_duration_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "连接建立（平均）",
+                    "refId": "I"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_quick_response_delay_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_quick_response_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "快速响应（平均）",
+                    "refId": "J"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_func_token_delay_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_func_token_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "FuncToken（平均）",
+                    "refId": "K"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_first_audio_delay_ms_sum{job=\"$job\", instance=\"$instance\"}[5m])) / sum(rate(agent_chat_first_audio_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "首包音频（平均）",
+                    "refId": "L"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "lineWidth": 2,
+                        "fillOpacity": 0
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            }
+        },
+        {
+            "title": "成功率统计",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 99,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(agent_chat_func_token_delay_ms_count{job=\"$job\", instance=\"$instance\", success=\"true\"}[5m])) / sum(rate(agent_chat_func_token_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "成功率",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "min": 0,
+                    "max": 1,
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 20,
+                        "lineWidth": 2
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "red"
+                            },
+                            {
+                                "value": 0.95,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 0.99,
+                                "color": "green"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "single"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "min", "last"]
+                }
+            }
+        },
+        {
+            "title": "请求量趋势",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 99,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(agent_chat_func_token_delay_ms_count{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "总请求量",
+                    "refId": "A"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_func_token_delay_ms_count{job=\"$job\", instance=\"$instance\", success=\"true\"}[5m]))",
+                    "legendFormat": "成功请求",
+                    "refId": "B"
+                },
+                {
+                    "expr": "sum(rate(agent_chat_func_token_delay_ms_count{job=\"$job\", instance=\"$instance\", success=\"false\"}[5m]))",
+                    "legendFormat": "失败请求",
+                    "refId": "C"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10,
+                        "lineWidth": 2
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,453 @@
+{
+    "title": "Coco Cloud Event 事件监控仪表板",
+    "tags": ["prometheus", "event"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "templating": {
+        "list": [
+            {
+                "name": "job",
+                "allValue": ".*",
+                "current": {
+                    "label": "Job",
+                    "text": "coco-cloud-ts",
+                    "value": "coco-cloud-ts"
+                },
+                "definition": "label_values({job=\"coco-cloud-ts\"},job)",
+                "includeAll": false,
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values({job=\"coco-cloud-ts\"},job)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "allValue": ".*",
+                "current": {
+                    "text": "192.168.10.234:8002",
+                    "value": "192.168.10.234:8002"
+                },
+                "definition": "label_values({job=\"$job\"},instance)",
+                "includeAll": false,
+                "label": "Instance",
+                "name": "instance",
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values({job=\"$job\"},instance)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            }
+        ]
+    },
+    "panels": [
+        {
+            "title": "Socket 请求事件监控（客户端→服务器）",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 22,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "请求事件趋势",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 23,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (event) (rate(socket_event_request_total{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "{{event}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10,
+                        "lineWidth": 2,
+                        "pointSize": 5,
+                        "showPoints": "never",
+                        "spanNulls": true
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "desc"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"],
+                    "showLegend": true
+                }
+            }
+        },
+        {
+            "title": "各事件请求量 TOP 10",
+            "type": "table",
+            "gridPos": {
+                "x": 12,
+                "y": 23,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "topk(10, sum by (event, namespace) (irate(socket_event_request_total{job=\"$job\", instance=\"$instance\"}[5m])))",
+                    "legendFormat": "",
+                    "refId": "A",
+                    "format": "table",
+                    "instant": true
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "decimals": 2
+                }
+            },
+            "options": {
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "displayName": "Value",
+                        "desc": true
+                    }
+                ]
+            },
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "Time": true,
+                            "__name__": true,
+                            "instance": true,
+                            "job": true
+                        },
+                        "renameByName": {
+                            "event": "事件名称",
+                            "namespace": "命名空间",
+                            "Value": "请求速率（事件/秒）"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "title": "请求事件总量（最近1小时）",
+            "type": "piechart",
+            "gridPos": {
+                "x": 0,
+                "y": 31,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "topk(10, sum by (event) (increase(socket_event_request_total{job=\"$job\", instance=\"$instance\"}[1h])))",
+                    "legendFormat": "{{event}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "values": ["value", "percent"]
+                },
+                "pieType": "pie",
+                "displayLabels": ["name", "percent"],
+                "tooltip": {
+                    "mode": "single"
+                }
+            }
+        },
+        {
+            "title": "事件来源分布（最近1小时）",
+            "type": "piechart",
+            "gridPos": {
+                "x": 12,
+                "y": 29,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "topk(10, sum by (source) (increase(socket_event_request_total{job=\"$job\", instance=\"$instance\"}[1h])))",
+                    "legendFormat": "{{source}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "values": ["value", "percent"]
+                },
+                "pieType": "pie",
+                "displayLabels": ["name", "percent"],
+                "tooltip": {
+                    "mode": "single"
+                }
+            }
+        },
+        {
+            "title": "Socket 响应事件监控（服务器→客户端）",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 37,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "响应事件趋势",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 38,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (event) (rate(socket_event_response_total{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "{{event}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10,
+                        "lineWidth": 2,
+                        "pointSize": 5,
+                        "showPoints": "never",
+                        "spanNulls": true
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "desc"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"],
+                    "showLegend": true
+                }
+            }
+        },
+        {
+            "title": "响应事件按命名空间分布",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 38,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (namespace) (rate(socket_event_response_total{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "{{namespace}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10,
+                        "lineWidth": 2
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "响应状态分布（成功 vs 失败）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 46,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (status) (rate(socket_event_response_total{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "{{status}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 20,
+                        "lineWidth": 2
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "TOP 10 响应事件（最近5分钟）",
+            "type": "table",
+            "gridPos": {
+                "x": 12,
+                "y": 46,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "topk(10, sum by (event, namespace) (irate(socket_event_response_total{job=\"$job\", instance=\"$instance\"}[5m])))",
+                    "legendFormat": "",
+                    "refId": "A",
+                    "format": "table",
+                    "instant": true
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "decimals": 2
+                }
+            },
+            "options": {
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "displayName": "Value",
+                        "desc": true
+                    }
+                ]
+            },
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "Time": true,
+                            "__name__": true,
+                            "instance": true,
+                            "job": true
+                        },
+                        "renameByName": {
+                            "event": "事件名称",
+                            "namespace": "命名空间",
+                            "Value": "响应速率（事件/秒）"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "title": "请求 vs 响应对比",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 54,
+                "w": 24,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(socket_event_request_total{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "请求事件（入站）",
+                    "refId": "A"
+                },
+                {
+                    "expr": "sum(rate(socket_event_response_total{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "响应事件（出站）",
+                    "refId": "B"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10,
+                        "lineWidth": 2
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        }
+    ]
+}

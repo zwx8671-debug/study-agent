@@ -1,0 +1,964 @@
+{
+    "title": "Coco Cloud HTTP 监控综合仪表板",
+    "tags": ["prometheus", "http", "third-party", "api"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "templating": {
+        "list": [
+            {
+                "name": "job",
+                "allValue": ".*",
+                "current": {
+                    "label": "Job",
+                    "text": "coco-cloud-ts",
+                    "value": "coco-cloud-ts"
+                },
+                "definition": "label_values({job=\"coco-cloud-ts\"},job)",
+                "includeAll": false,
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values({job=\"coco-cloud-ts\"},job)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "allValue": ".*",
+                "current": {
+                    "text": "192.168.10.234:8002",
+                    "value": "192.168.10.234:8002"
+                },
+                "definition": "label_values({job=\"$job\"},instance)",
+                "includeAll": false,
+                "label": "Instance",
+                "name": "instance",
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values({job=\"$job\"},instance)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "allValue": ".*",
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "definition": "label_values(third_party_http_requests_total{job=\"$job\", instance=\"$instance\"},service)",
+                "includeAll": true,
+                "label": "Third-Party Service",
+                "name": "service",
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values(third_party_http_requests_total{job=\"$job\", instance=\"$instance\"},service)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            }
+        ]
+    },
+    "panels": [
+        {
+            "title": "系统概览",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "HTTP 请求速率（QPS）",
+            "type": "stat",
+            "gridPos": {
+                "x": 0,
+                "y": 1,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(http_requests_total{job=\"$job\", instance=\"$instance\"}[1m]))",
+                    "legendFormat": "QPS",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 50,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 100,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "HTTP 错误率",
+            "type": "stat",
+            "gridPos": {
+                "x": 6,
+                "y": 1,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(http_requests_total{job=\"$job\", instance=\"$instance\", status_code=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "错误率",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 0.01,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 0.05,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "聊天并发数",
+            "type": "stat",
+            "gridPos": {
+                "x": 12,
+                "y": 1,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(agent_chat_concurrent{job=\"$job\", instance=\"$instance\"})",
+                    "legendFormat": "并发会话",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 50,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 100,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "响应事件速率（事件/秒）",
+            "type": "stat",
+            "gridPos": {
+                "x": 18,
+                "y": 1,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(socket_event_response_total{job=\"$job\", instance=\"$instance\"}[1m]))",
+                    "legendFormat": "响应事件速率",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 100,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 500,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "HTTP 监控",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 5,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "HTTP 请求趋势",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 6,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (status_code) (rate(http_requests_total{job=\"$job\", instance=\"$instance\"}[5m]))",
+                    "legendFormat": "{{status_code}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "HTTP 响应时间分布（P50/P95/P99）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 6,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(http_requests_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(http_requests_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(http_requests_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P99",
+                    "refId": "C"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth"
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            }
+        },
+        {
+            "title": "各路由请求量 TOP 10",
+            "type": "table",
+            "gridPos": {
+                "x": 0,
+                "y": 14,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "topk(10, sum by (route, method) (rate(http_requests_total{job=\"$job\", instance=\"$instance\"}[5m])))",
+                    "legendFormat": "",
+                    "refId": "A",
+                    "format": "table",
+                    "instant": true
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps"
+                }
+            },
+            "options": {
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "displayName": "Value",
+                        "desc": true
+                    }
+                ]
+            },
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "Time": true
+                        },
+                        "renameByName": {
+                            "route": "路由",
+                            "method": "方法",
+                            "Value": "请求速率（req/s）"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "title": "HTTP 状态码分布（最近1小时）",
+            "type": "piechart",
+            "gridPos": {
+                "x": 12,
+                "y": 14,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (status_code) (increase(http_requests_total{job=\"$job\", instance=\"$instance\"}[1h]))",
+                    "legendFormat": "{{status_code}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "values": ["value", "percent"]
+                },
+                "pieType": "pie",
+                "displayLabels": ["name", "percent"]
+            }
+        },
+        {
+            "title": "第三方服务总览",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 22,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "总请求速率（QPS）",
+            "type": "stat",
+            "gridPos": {
+                "x": 0,
+                "y": 23,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[1m]))",
+                    "legendFormat": "QPS",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 10,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 50,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "总错误率",
+            "type": "stat",
+            "gridPos": {
+                "x": 6,
+                "y": 23,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\", status_code!~\"2..\"}[5m])) / sum(rate(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m]))",
+                    "legendFormat": "错误率",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 0.01,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 0.05,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "平均响应时间",
+            "type": "stat",
+            "gridPos": {
+                "x": 12,
+                "y": 23,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(third_party_http_requests_duration_seconds_sum{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m])) / sum(rate(third_party_http_requests_duration_seconds_count{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m]))",
+                    "legendFormat": "平均响应时间",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "decimals": 3,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 1,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 3,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "请求总数（最近1小时）",
+            "type": "stat",
+            "gridPos": {
+                "x": 18,
+                "y": 23,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(increase(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[1h]))",
+                    "legendFormat": "总请求数",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "blue"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "按服务分类监控",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 27,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "各服务请求速率对比",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 28,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (service) (rate(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m]))",
+                    "legendFormat": "{{service}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10,
+                        "showPoints": "never"
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "各服务平均响应时间对比",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 28,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (service) (rate(third_party_http_requests_duration_seconds_sum{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m])) / sum by (service) (rate(third_party_http_requests_duration_seconds_count{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m]))",
+                    "legendFormat": "{{service}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "decimals": 3,
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "showPoints": "never"
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "各服务错误率",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 36,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (service) (rate(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\", status_code!~\"2..\"}[5m])) / sum by (service) (rate(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m]))",
+                    "legendFormat": "{{service}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "showPoints": "auto"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 0.01,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 0.05,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "服务请求量占比（最近1小时）",
+            "type": "piechart",
+            "gridPos": {
+                "x": 12,
+                "y": 36,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (service) (increase(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[1h]))",
+                    "legendFormat": "{{service}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "values": ["value", "percent"]
+                },
+                "pieType": "pie",
+                "displayLabels": ["name", "percent"]
+            }
+        },
+        {
+            "title": "响应时间分布（P50/P95/P99）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 53,
+                "w": 24,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum by (le, service) (rate(third_party_http_requests_duration_seconds_bucket{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m])))",
+                    "legendFormat": "{{service}} - P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum by (le, service) (rate(third_party_http_requests_duration_seconds_bucket{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m])))",
+                    "legendFormat": "{{service}} - P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum by (le, service) (rate(third_party_http_requests_duration_seconds_bucket{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m])))",
+                    "legendFormat": "{{service}} - P99",
+                    "refId": "C"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "decimals": 3,
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "showPoints": "never"
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "状态码分析",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 61,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "状态码分布趋势",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 62,
+                "w": 16,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (status_code) (rate(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[5m]))",
+                    "legendFormat": "{{status_code}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10,
+                        "showPoints": "never",
+                        "stacking": {
+                            "mode": "normal"
+                        }
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "状态码占比（最近1小时）",
+            "type": "piechart",
+            "gridPos": {
+                "x": 16,
+                "y": 62,
+                "w": 8,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (status_code) (increase(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[1h]))",
+                    "legendFormat": "{{status_code}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "values": ["value", "percent"]
+                },
+                "pieType": "pie",
+                "displayLabels": ["name", "percent"]
+            }
+        },
+        {
+            "title": "各服务状态码分布",
+            "type": "table",
+            "gridPos": {
+                "x": 0,
+                "y": 70,
+                "w": 24,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (service, status_code) (increase(third_party_http_requests_total{job=\"$job\", instance=\"$instance\", service=~\"$service\"}[1h]))",
+                    "legendFormat": "",
+                    "refId": "A",
+                    "format": "table",
+                    "instant": true
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            },
+            "options": {
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "displayName": "Value",
+                        "desc": true
+                    }
+                ]
+            },
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "Time": true
+                        },
+                        "renameByName": {
+                            "service": "服务",
+                            "status_code": "状态码",
+                            "Value": "请求数（最近1小时）"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

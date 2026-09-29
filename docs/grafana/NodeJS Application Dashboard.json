@@ -1,0 +1,839 @@
+{
+    "title": "NodeJS 应用监控仪表板",
+    "tags": ["prometheus", "nodejs", "gc", "performance", "eventloop"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "templating": {
+        "list": [
+            {
+                "name": "job",
+                "allValue": ".*",
+                "current": {
+                    "text": "coco-cloud-ts",
+                    "value": "coco-cloud-ts"
+                },
+                "definition": "label_values({job=\"coco-cloud-ts\"},job)",
+                "includeAll": false,
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values({job=\"coco-cloud-ts\"},job)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "allValue": ".*",
+                "current": {
+                    "text": "192.168.10.193:8002",
+                    "value": "192.168.10.193:8002"
+                },
+                "definition": "label_values({job=\"$job\"},instance)",
+                "includeAll": false,
+                "label": "Instance",
+                "name": "instance",
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values({job=\"$job\"},instance)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+            }
+        ]
+    },
+    "panels": [
+        {
+            "title": "系统概览",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "进程 CPU 使用率",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 1,
+                "w": 8,
+                "h": 6
+            },
+            "targets": [
+                {
+                    "expr": "irate(process_cpu_user_seconds_total{job=\"$job\", instance=~\"$instance\"}[2m]) * 100",
+                    "legendFormat": "用户态 CPU - {{instance}}",
+                    "refId": "A"
+                },
+                {
+                    "expr": "irate(process_cpu_system_seconds_total{job=\"$job\", instance=~\"$instance\"}[2m]) * 100",
+                    "legendFormat": "系统态 CPU - {{instance}}",
+                    "refId": "B"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "lastNotNull", "max", "min"]
+                }
+            }
+        },
+        {
+            "title": "事件循环延迟",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 8,
+                "y": 1,
+                "w": 8,
+                "h": 6
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_eventloop_lag_seconds{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "{{instance}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "lastNotNull", "max", "min"]
+                }
+            }
+        },
+        {
+            "title": "Node.js 版本",
+            "type": "stat",
+            "gridPos": {
+                "x": 16,
+                "y": 1,
+                "w": 4,
+                "h": 3
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_version_info{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "{{version}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "options": {
+                "colorMode": "none",
+                "graphMode": "none",
+                "textMode": "name",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "values": false,
+                    "fields": "",
+                    "calcs": ["lastNotNull"]
+                }
+            }
+        },
+        {
+            "title": "进程重启次数",
+            "type": "stat",
+            "gridPos": {
+                "x": 20,
+                "y": 1,
+                "w": 4,
+                "h": 3
+            },
+            "targets": [
+                {
+                    "expr": "sum(changes(process_start_time_seconds{job=\"$job\", instance=~\"$instance\"}[1m]))",
+                    "legendFormat": "{{instance}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "none",
+                    "color": {
+                        "fixedColor": "#F2495C",
+                        "mode": "fixed"
+                    }
+                }
+            },
+            "options": {
+                "colorMode": "none",
+                "graphMode": "area",
+                "textMode": "auto"
+            }
+        },
+        {
+            "title": "GC P99 暂停时间",
+            "type": "stat",
+            "gridPos": {
+                "x": 16,
+                "y": 4,
+                "w": 4,
+                "h": 3
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(nodejs_gc_duration_seconds_bucket{job=\"$job\", instance=~\"$instance\"}[5m])) by (le))",
+                    "legendFormat": "P99",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 0.1,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 1,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "事件循环延迟 P99",
+            "type": "stat",
+            "gridPos": {
+                "x": 20,
+                "y": 4,
+                "w": 4,
+                "h": 3
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_eventloop_lag_p99_seconds{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "P99",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 0.1,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 0.5,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "内存监控",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 7,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "进程内存使用情况",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "process_resident_memory_bytes{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "进程内存 - {{instance}}",
+                    "refId": "A"
+                },
+                {
+                    "expr": "nodejs_heap_size_total_bytes{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "堆总量 - {{instance}}",
+                    "refId": "B"
+                },
+                {
+                    "expr": "nodejs_heap_size_used_bytes{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "堆已使用 - {{instance}}",
+                    "refId": "C"
+                },
+                {
+                    "expr": "nodejs_external_memory_bytes{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "外部内存 - {{instance}}",
+                    "refId": "D"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "bytes",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "calcs": ["mean", "lastNotNull", "max", "min"]
+                }
+            }
+        },
+        {
+            "title": "堆内存使用率",
+            "type": "stat",
+            "gridPos": {
+                "x": 12,
+                "y": 8,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_heap_size_used_bytes{job=\"$job\", instance=~\"$instance\"} / nodejs_heap_size_total_bytes{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "使用率",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 0.7,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 0.9,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "GC 频率（次/分钟）",
+            "type": "stat",
+            "gridPos": {
+                "x": 12,
+                "y": 12,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(nodejs_gc_duration_seconds_count{job=\"$job\", instance=~\"$instance\"}[1m])) * 60",
+                    "legendFormat": "GC 频率",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "decimals": 1,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 10,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 30,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value_and_name"
+            }
+        },
+        {
+            "title": "活动句柄/请求总数",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 18,
+                "y": 8,
+                "w": 6,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_active_handles_total{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "活跃的句柄（定时器、网络连接等） - {{instance}}",
+                    "refId": "A"
+                },
+                {
+                    "expr": "nodejs_active_requests_total{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "活动请求 - {{instance}}",
+                    "refId": "B"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "lastNotNull", "max", "min"]
+                }
+            }
+        },
+        {
+            "title": "堆内存详细信息",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 16,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "堆总量详情",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 17,
+                "w": 8,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_heap_space_size_total_bytes{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "堆总量 - {{instance}} - {{space}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "bytes",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "lastNotNull", "max", "min"]
+                }
+            }
+        },
+        {
+            "title": "堆已使用详情",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 8,
+                "y": 17,
+                "w": 8,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_heap_space_size_used_bytes{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "堆已使用 - {{instance}} - {{space}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "bytes",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "lastNotNull", "max", "min"]
+                }
+            }
+        },
+        {
+            "title": "堆可用空间详情",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 16,
+                "y": 17,
+                "w": 8,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_heap_space_size_available_bytes{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "堆可用 - {{instance}} - {{space}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "bytes",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "lastNotNull", "max", "min"]
+                }
+            }
+        },
+        {
+            "title": "GC 监控",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 25,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "GC 暂停时间分布（P50/P95/P99）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 26,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(nodejs_gc_duration_seconds_bucket{job=\"$job\", instance=~\"$instance\"}[5m])) by (le, kind))",
+                    "legendFormat": "P50 - {{kind}}",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(nodejs_gc_duration_seconds_bucket{job=\"$job\", instance=~\"$instance\"}[5m])) by (le, kind))",
+                    "legendFormat": "P95 - {{kind}}",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(nodejs_gc_duration_seconds_bucket{job=\"$job\", instance=~\"$instance\"}[5m])) by (le, kind))",
+                    "legendFormat": "P99 - {{kind}}",
+                    "refId": "C"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth"
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "GC 执行频率（按类型）",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 26,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "rate(nodejs_gc_duration_seconds_count{job=\"$job\", instance=~\"$instance\"}[5m]) * 60",
+                    "legendFormat": "{{kind}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 10
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        },
+        {
+            "title": "GC 类型分布（最近1小时）",
+            "type": "piechart",
+            "gridPos": {
+                "x": 0,
+                "y": 34,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (kind) (increase(nodejs_gc_duration_seconds_count{job=\"$job\", instance=~\"$instance\"}[1h]))",
+                    "legendFormat": "{{kind}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "values": ["value", "percent"]
+                },
+                "pieType": "pie",
+                "displayLabels": ["name", "percent"]
+            }
+        },
+        {
+            "title": "Major GC vs Minor GC 频率对比",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 12,
+                "y": 34,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "rate(nodejs_gc_duration_seconds_count{job=\"$job\", instance=~\"$instance\", kind=\"major\"}[5m]) * 60",
+                    "legendFormat": "Major GC (老生代)",
+                    "refId": "A"
+                },
+                {
+                    "expr": "rate(nodejs_gc_duration_seconds_count{job=\"$job\", instance=~\"$instance\", kind=\"minor\"}[5m]) * 60",
+                    "legendFormat": "Minor GC (新生代)",
+                    "refId": "B"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth",
+                        "fillOpacity": 20
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            }
+        },
+        {
+            "title": "事件循环监控",
+            "type": "row",
+            "gridPos": {
+                "x": 0,
+                "y": 42,
+                "w": 24,
+                "h": 1
+            },
+            "collapsed": false
+        },
+        {
+            "title": "事件循环延迟趋势",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 43,
+                "w": 24,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "nodejs_eventloop_lag_mean_seconds{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "平均延迟 - {{instance}}",
+                    "refId": "A"
+                },
+                {
+                    "expr": "nodejs_eventloop_lag_p95_seconds{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "P95 - {{instance}}",
+                    "refId": "B"
+                },
+                {
+                    "expr": "nodejs_eventloop_lag_p99_seconds{job=\"$job\", instance=~\"$instance\"}",
+                    "legendFormat": "P99 - {{instance}}",
+                    "refId": "C"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "smooth"
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": ["mean", "max", "last"]
+                }
+            }
+        }
+    ],
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    }
+}
